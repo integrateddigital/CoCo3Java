@@ -46,9 +46,26 @@ public class UnsignedWord
     }
 
     public int intValue() {
-        int result = highByte;
+        int result = (highByte & 0xFF);
         result = result << 2;
-        result |= lowByte;
+        result |= (lowByte & 0xFF);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UnsignedWord that = (UnsignedWord) o;
+
+        return ((UnsignedWord) o).intValue() == this.intValue();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) highByte;
+        result = 31 * result + (int) lowByte;
         return result;
     }
 }

@@ -1,7 +1,7 @@
 package ca.craigthomas.yacoco3e.components;
 
 import ca.craigthomas.yacoco3e.datatypes.MemoryResult;
-import ca.craigthomas.yacoco3e.datatypes.RegisterSet;
+import ca.craigthomas.yacoco3e.datatypes.Registers;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
 
@@ -27,10 +27,10 @@ public class Memory
      * the memory location of the direct pointer as the high byte,
      * and the low byte pointed to by the pointer.
      *
-     * @param regs the RegisterSet containing the current CPU state
+     * @param regs the Registers containing the current CPU state
      * @return a MemoryResult with the data from the DP:PC location
      */
-    public MemoryResult getDirect(RegisterSet regs) {
+    public MemoryResult getDirect(Registers regs) {
         return new MemoryResult(
                 1,
                 new UnsignedWord(regs.getDP(), readByte(regs.getPC()))
@@ -41,10 +41,10 @@ public class Memory
      * Given the current registers, will return the value that is
      * pointed to by the program counter.
      *
-     * @param regs the RegisterSet containing the current CPU state
+     * @param regs the Registers containing the current CPU state
      * @return a MemoryResult with the data from the PC location
      */
-    public MemoryResult getImmediate(RegisterSet regs) {
+    public MemoryResult getImmediate(Registers regs) {
         return new MemoryResult(
                 2,
                 readWord(regs.getPC())
@@ -56,10 +56,10 @@ public class Memory
      * pointed to by the value that is pointed to by the program
      * counter value.
      *
-     * @param regs the RegisterSet containing the current CPU state
+     * @param regs the Registers containing the current CPU state
      * @return a MemoryResult with the data from the PC location
      */
-    public MemoryResult getExtended(RegisterSet regs) {
+    public MemoryResult getExtended(Registers regs) {
         return new MemoryResult(
                 2,
                 readWord(readWord(regs.getPC()))
@@ -81,5 +81,9 @@ public class Memory
         result.high(readByte(address));
         result.low(readByte(address.next()));
         return result;
+    }
+
+    public void writeByte(UnsignedWord address, UnsignedByte value) {
+        memory[address.intValue()] = value.getShort();
     }
 }
