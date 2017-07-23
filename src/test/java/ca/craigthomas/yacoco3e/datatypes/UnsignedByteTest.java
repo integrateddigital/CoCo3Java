@@ -159,4 +159,10 @@ public class UnsignedByteTest
         UnsignedByte second = new UnsignedByte(2);
         assertFalse(first.equals(second));
     }
+
+    @Test
+    public void testHashCodeIsValue() {
+        UnsignedByte result = new UnsignedByte(0xBE);
+        assertEquals(0xBE, result.hashCode());
+    }
 }

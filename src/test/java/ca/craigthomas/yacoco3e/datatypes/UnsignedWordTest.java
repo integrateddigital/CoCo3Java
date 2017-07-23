@@ -85,4 +85,10 @@ public class UnsignedWordTest
         UnsignedWord second = new UnsignedWord(0xDEAD);
         assertTrue(first.equals(second));
     }
+
+    @Test
+    public void testHashCodeIsIntValue() {
+        UnsignedWord result = new UnsignedWord(0xBEEF);
+        assertEquals(0xBEEF, result.hashCode());
+    }
 }

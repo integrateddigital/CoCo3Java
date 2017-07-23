@@ -84,9 +84,7 @@ public class UnsignedWord
 
     @Override
     public int hashCode() {
-        int result = (int) highByte.getShort();
-        result = 31 * result + (int) lowByte.getShort();
-        return result;
+        return intValue();
     }
 
     @Override
