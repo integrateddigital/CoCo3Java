@@ -6,7 +6,6 @@ package ca.craigthomas.yacoco3e.datatypes;
 
 import static org.junit.Assert.*;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class UnsignedByteTest
