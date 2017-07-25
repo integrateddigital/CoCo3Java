@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2013-2017 Craig Thomas
+ * This project uses an MIT style license - see LICENSE for details.
+ */
 package ca.craigthomas.yacoco3e.components;
 
 import ca.craigthomas.yacoco3e.datatypes.MemoryResult;
@@ -16,16 +20,25 @@ public class Memory
     public static final int MEM_512K = 0x80000;
 
     /* The main memory array */
-    short [] memory;
+    protected short [] memory;
 
     public Memory() {
-        memory = new short[MEM_512K];
+        this(MEM_512K);
+    }
+
+    /**
+     * Initializes the memory module with the number of bytes specified.
+     *
+     * @param size the number of bytes to initialize in main memory
+     */
+    public Memory(int size) {
+        memory = new short[size];
     }
 
     /**
      * Given the current registers, will return an UnsignedWord from
      * the memory location of the direct pointer as the high byte,
-     * and the low byte pointed to by the pointer.
+     * and the low byte pointed to by the PC.
      *
      * @param regs the Registers containing the current CPU state
      * @return a MemoryResult with the data from the DP:PC location
@@ -76,6 +89,12 @@ public class Memory
         return new UnsignedByte(memory[address.intValue()]);
     }
 
+    /**
+     * Reads an UnsignedWord from the specified address.
+     *
+     * @param address the UnsignedWord location to read from
+     * @return an UnsignedWord from the specified location
+     */
     public UnsignedWord readWord(UnsignedWord address) {
         UnsignedWord result = new UnsignedWord();
         result.high(readByte(address));
@@ -83,6 +102,12 @@ public class Memory
         return result;
     }
 
+    /**
+     * Writes an UnsignedByte to the specified memory address.
+     *
+     * @param address the UnsignedWord location to write to
+     * @param value the UnsignedByte to write
+     */
     public void writeByte(UnsignedWord address, UnsignedByte value) {
         memory[address.intValue()] = value.getShort();
     }

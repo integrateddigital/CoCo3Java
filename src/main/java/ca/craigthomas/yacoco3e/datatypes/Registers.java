@@ -40,6 +40,14 @@ public class Registers
         return pc;
     }
 
+    public void setPC(UnsignedWord pc) {
+        this.pc = pc;
+    }
+
+    public void setDP(UnsignedByte dp) {
+        this.dp = dp;
+    }
+
     public UnsignedByte getDP() {
         return dp;
     }

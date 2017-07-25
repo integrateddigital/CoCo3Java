@@ -10,7 +10,7 @@ public class MemoryResult
         this.result = result;
     }
 
-    int getBytesConsumed() {
+    public int getBytesConsumed() {
         return bytesConsumed;
     }
 

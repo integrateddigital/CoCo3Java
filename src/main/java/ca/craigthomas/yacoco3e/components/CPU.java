@@ -14,7 +14,7 @@ public class CPU
     Registers regs;
     Memory memory;
     String opShortDesc;
-    String operationLongDescription;
+    String opLongDescription;
 
     public CPU(Registers registers, Memory memory) {
         this.regs = registers;
@@ -34,7 +34,6 @@ public class CPU
      */
     int executeInstruction(int operand) {
         int operationTicks = 0;
-        UnsignedWord targetWord;
         MemoryResult memoryResult;
 
         switch (operand) {
