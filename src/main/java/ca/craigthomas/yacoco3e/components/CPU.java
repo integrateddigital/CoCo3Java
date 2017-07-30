@@ -22,7 +22,7 @@ public class CPU
     }
 
     public void setShortDesc(String string, MemoryResult value) {
-        opShortDesc = String.format(string, value.getResult().intValue());
+        opShortDesc = String.format(string, value.getResult().getInt());
     }
 
     /**

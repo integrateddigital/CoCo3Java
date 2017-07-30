@@ -17,8 +17,7 @@ public class UnsignedWord
     private UnsignedByte lowByte;
 
     public UnsignedWord(int value) {
-        highByte = new UnsignedByte((value & 0xFF00) >> 8);
-        lowByte = new UnsignedByte(value & 0x00FF);
+        set(value);
     }
 
     public UnsignedWord(UnsignedByte high, UnsignedByte low) {
@@ -55,9 +54,41 @@ public class UnsignedWord
      * @return the next byte to read
      */
     public UnsignedWord next() {
-        int value = intValue();
+        int value = getInt();
         value += 1;
         return new UnsignedWord(value);
+    }
+
+    /**
+     * Adds the specified value to the current word.
+     *
+     * @param value the additional value to add
+     */
+    public void add(int value) {
+        int newValue = getInt();
+        newValue += value;
+        set(newValue);
+    }
+
+    /**
+     * Returns true if the specified mask results in a non-zero value when
+     * ANDed to the current value of the word.
+     *
+     * @param mask the bitmask to apply
+     * @return True if applying the mask would result in a non-zero value
+     */
+    public boolean isMasked(int mask) {
+        return (getInt() & mask) == mask;
+    }
+
+    /**
+     * Sets the current value for the UnsignedWord.
+     *
+     * @param value the new value to set
+     */
+    public void set(int value) {
+        highByte = new UnsignedByte((value & 0xFF00) >> 8);
+        lowByte = new UnsignedByte(value & 0x00FF);
     }
 
     /**
@@ -65,11 +96,36 @@ public class UnsignedWord
      *
      * @return the integer representation of the word
      */
-    public int intValue() {
+    public int getInt() {
         int result = highByte.getShort();
         result = result << 8;
         result |= lowByte.getShort();
         return result;
+    }
+
+    /**
+     * Returns the signed integer representation of the word. The integer is
+     * negative if the high byte has the 8th bit set.
+     *
+     * @return the signed integer representation of the word
+     */
+    public int getSignedInt() {
+        if (highByte.isNegative()) {
+            int result = highByte.getShort() & 0x7F;
+            result = result << 8;
+            result |= lowByte.getShort();
+            return -result;
+        }
+        return getInt();
+    }
+
+    /**
+     * Creates a copy of the current unsigned word.
+     *
+     * @return a new copy of the UnsignedWord
+     */
+    public UnsignedWord copy() {
+        return new UnsignedWord(getInt());
     }
 
     @Override
@@ -79,12 +135,12 @@ public class UnsignedWord
 
         UnsignedWord that = (UnsignedWord) o;
 
-        return this.intValue() == that.intValue();
+        return this.getInt() == that.getInt();
     }
 
     @Override
     public int hashCode() {
-        return intValue();
+        return getInt();
     }
 
     @Override

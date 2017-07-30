@@ -50,6 +50,104 @@ public class Memory
         );
     }
 
+    public MemoryResult getIndirect(UnsignedWord address, Registers regs) {
+        UnsignedByte postByte = readByte(address).copy();
+        UnsignedWord register = new UnsignedWord(0);
+        int registerFlag = Registers.REG_UNKNOWN;
+        int bytesConsumed = 1;
+        int offset = 0;
+        int addToReg = 0;
+
+        /* Check to see if there is a 5-bit signed offset to apply */
+        if (!postByte.isMasked(0x80)) {
+            postByte.and(0x1F);
+            if (postByte.isMasked(0x10)) {
+                postByte.and(0xF);
+                offset -= postByte.getShort();
+            } else {
+                offset += postByte.getShort();
+            }
+            address.add(offset);
+            return new MemoryResult(bytesConsumed, address);
+        }
+
+        /* Check to see if a register should be modified */
+        switch (postByte.getShort() & 0x60) {
+            case 0x00:
+                register = regs.getX().copy();
+                registerFlag = Registers.REG_X;
+                break;
+
+            case 0x20:
+                register = regs.getY().copy();
+                registerFlag = Registers.REG_Y;
+                break;
+
+            case 0x40:
+                register = regs.getU().copy();
+                registerFlag = Registers.REG_U;
+                break;
+
+            case 0x60:
+                register = regs.getS().copy();
+                registerFlag = Registers.REG_S;
+                break;
+
+            default:
+                break;
+        }
+
+        /* Check the postbyte for the offset codes */
+        switch (postByte.getShort() & 0xF) {
+            case 0x0:
+                /* ,R+ */
+                addToReg = 1;
+                break;
+
+            case 0x1:
+                /* ,R++ */
+                addToReg = 2;
+                break;
+
+            case 0x2:
+                /* ,R- */
+                addToReg = -1;
+                break;
+
+            case 0x3:
+                /* ,R-- */
+                addToReg = -2;
+                break;
+
+            case 0x4:
+                /* Nothing */
+                break;
+
+            case 0x5:
+                /* B,R */
+                addToReg = regs.getB().getSignedShort();
+                break;
+
+            case 0x6:
+                /* A,R */
+                addToReg = regs.getA().getSignedShort();
+                break;
+
+            case 0x8:
+                /* nn,R - 8-bit offset */
+                addToReg = readByte(address).getSignedShort();
+                bytesConsumed++;
+                break;
+
+            case 0x9:
+                /* nnnn,R - 16-bit offset */
+                addToReg = readWord(address).getSignedInt();
+                bytesConsumed += 2;
+                break;
+        }
+        return new MemoryResult(bytesConsumed, new UnsignedWord(0));
+    }
+
     /**
      * Given the current registers, will return the value that is
      * pointed to by the program counter.
@@ -86,7 +184,7 @@ public class Memory
      * @return an UnsignedByte from the specified location
      */
     public UnsignedByte readByte(UnsignedWord address) {
-        return new UnsignedByte(memory[address.intValue()]);
+        return new UnsignedByte(memory[address.getInt()]);
     }
 
     /**
@@ -109,6 +207,6 @@ public class Memory
      * @param value the UnsignedByte to write
      */
     public void writeByte(UnsignedWord address, UnsignedByte value) {
-        memory[address.intValue()] = value.getShort();
+        memory[address.getInt()] = value.getShort();
     }
 }

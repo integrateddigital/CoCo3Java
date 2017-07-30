@@ -13,39 +13,39 @@ public class UnsignedWordTest
     @Test
     public void testValuePreserved() {
         UnsignedWord result = new UnsignedWord(0xFFFF);
-        assertEquals(0xFFFF, result.intValue());
+        assertEquals(0xFFFF, result.getInt());
     }
 
     @Test
     public void testNextLowValue() {
         UnsignedWord result = new UnsignedWord(0x0001);
-        assertEquals(0x0002, result.next().intValue());
+        assertEquals(0x0002, result.next().getInt());
     }
 
     @Test
     public void testNextRollsOver() {
         UnsignedWord result = new UnsignedWord(0xFFFF);
-        assertEquals(0x0000, result.next().intValue());
+        assertEquals(0x0000, result.next().getInt());
     }
 
     @Test
     public void testDefaultConstructorSetsZero() {
         UnsignedWord result = new UnsignedWord();
-        assertEquals(0, result.intValue());
+        assertEquals(0, result.getInt());
     }
 
     @Test
     public void testHighSetsHighByteOnly() {
         UnsignedWord result = new UnsignedWord();
         result.high(new UnsignedByte(0xFF));
-        assertEquals(0xFF00, result.intValue());
+        assertEquals(0xFF00, result.getInt());
     }
 
     @Test
     public void testLowSetsLowByteOnly() {
         UnsignedWord result = new UnsignedWord();
         result.low(new UnsignedByte(0xFF));
-        assertEquals(0x00FF, result.intValue());
+        assertEquals(0x00FF, result.getInt());
     }
 
     @Test

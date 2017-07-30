@@ -7,6 +7,21 @@ package ca.craigthomas.yacoco3e.datatypes;
  */
 public class Registers
 {
+    /* Register X Flag */
+    public static final int REG_X = 0;
+
+    /* Register Y Flag */
+    public static final int REG_Y = 1;
+
+    /* Register U Flag */
+    public static final int REG_U = 2;
+
+    /* Register S Flag */
+    public static final int REG_S = 3;
+
+    /* Register Unknown Flag */
+    public static final int REG_UNKNOWN = 99;
+
     /* Condition Code - Carry */
     public static final short CC_C = 0x01;
 
@@ -50,6 +65,34 @@ public class Registers
 
     public UnsignedByte getDP() {
         return dp;
+    }
+
+    public UnsignedWord getX() {
+        return x;
+    }
+
+    public UnsignedWord getY() {
+        return y;
+    }
+
+    public UnsignedWord getU() {
+        return u;
+    }
+
+    public UnsignedWord getS() {
+        return s;
+    }
+
+    public UnsignedByte getA() {
+        return a;
+    }
+
+    public UnsignedByte getB() {
+        return b;
+    }
+
+    public UnsignedWord binaryAdd(UnsignedWord val1, UnsignedWord val2, boolean hFlag, boolean cFlag, boolean vFlag) {
+        return new UnsignedWord(0);
     }
 
     public boolean ccOverflowSet() {

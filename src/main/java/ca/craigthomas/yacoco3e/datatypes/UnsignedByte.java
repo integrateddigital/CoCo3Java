@@ -28,6 +28,19 @@ public class UnsignedByte
     }
 
     /**
+     * Returns the signed value of the byte. The signed value is calculated by
+     * looking at the 8th bit of the byte. If it is 1, then it is considered
+     * to be negative.
+     *
+     * @return the signed short value of the byte
+     */
+    public short getSignedShort() {
+        if (isMasked(0x80)) {
+            return (short) -(value & 0x7F);
+        }
+        return getShort();
+    }
+    /**
      * Returns a new UnsignedByte that is the twos compliment
      * value of the current byte.
      *
@@ -35,21 +48,6 @@ public class UnsignedByte
      */
     public UnsignedByte twosCompliment() {
         return new UnsignedByte((~value + 1));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UnsignedByte that = (UnsignedByte) o;
-
-        return this.getShort() == that.getShort();
-    }
-
-    @Override
-    public int hashCode() {
-        return (int) value;
     }
 
     /**
@@ -97,5 +95,29 @@ public class UnsignedByte
      */
     public boolean isNegative() {
         return isMasked(0x80);
+    }
+
+    /**
+     * Returns a copy of the unsigned byte.
+     *
+     * @return a copy of the unsigned byte
+     */
+    public UnsignedByte copy() {
+        return new UnsignedByte(getShort());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UnsignedByte that = (UnsignedByte) o;
+
+        return this.getShort() == that.getShort();
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) value;
     }
 }
