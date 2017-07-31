@@ -53,17 +53,17 @@ public class Memory
     /**
      * Given the current registers, and an address into memory, return an
      * UnsignedWord that is based on the value of the byte that occurs at
-     * the specified address. This address contains a "post-byte" value that
+     * one byte past the PC. This address contains a "post-byte" value that
      * encodes one of several different meanings. See the inline comments for
      * how the post-byte value is checked.
      *
-     * @param address the address of the post-byte in memory
      * @param regs the current state of the registers
      *
      * @return the value pointed to by the post-byte (or indexed location)
      * @throws IllegalIndexedPostbyteException
      */
-    public MemoryResult getIndirect(UnsignedWord address, Registers regs) throws IllegalIndexedPostbyteException {
+    public MemoryResult getIndirect(Registers regs) {
+        UnsignedWord address = regs.getPC().next();
         UnsignedByte postByte = readByte(address).copy();
         UnsignedWord register = new UnsignedWord(0);
         UnsignedWord result;
@@ -196,7 +196,9 @@ public class Memory
                 break;
 
             default:
-                throw new IllegalIndexedPostbyteException(postByte);
+                /* TODO: better error handling */
+                System.out.println("Illegal post-byte " + postByte.toString());
+                result = new UnsignedWord(0);
         }
 
         /* If the 5-bit code starts with 1, do indirect addressing */

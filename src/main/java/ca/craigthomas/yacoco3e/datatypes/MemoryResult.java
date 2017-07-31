@@ -17,4 +17,8 @@ public class MemoryResult
     public UnsignedWord getResult() {
         return result;
     }
+
+    public String toString() {
+        return String.format("[%d bytes read, %s]", bytesConsumed, result.toString());
+    }
 }

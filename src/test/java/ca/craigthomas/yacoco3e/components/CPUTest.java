@@ -73,6 +73,55 @@ public class CPUTest
     }
 
     @Test
+    public void testComplementAllOnes() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0xFF));
+        cpu.complementM(address);
+        UnsignedByte result = memory.readByte(address);
+        assertEquals(new UnsignedByte(0), result);
+    }
+
+    @Test
+    public void testComplementOne() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0x01));
+        cpu.complementM(address);
+        UnsignedByte result = memory.readByte(address);
+        assertEquals(new UnsignedByte(0xFE), result);
+    }
+
+    @Test
+    public void testComplementSetsCarryFlag() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0x01));
+        cpu.complementM(address);
+        assertTrue(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testComplementSetsNegativeFlagCorrect() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0x01));
+        cpu.complementM(address);
+        assertTrue(registers.ccNegativeSet());
+
+        address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0xFE));
+        cpu.complementM(address);
+        assertFalse(registers.ccNegativeSet());
+    }
+
+    @Test
+    public void testComplementSetsZeroFlagCorrect() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0xFF));
+        cpu.complementM(address);
+        UnsignedByte result = memory.readByte(address);
+        assertEquals(0, result.getShort());
+        assertTrue(registers.ccZeroSet());
+    }
+
+    @Test
     public void testNegateDirectCalled() {
         cpuSpy.executeInstruction(0x00);
         verify(memorySpy).getDirect(registersSpy);
@@ -80,9 +129,37 @@ public class CPUTest
     }
 
     @Test
+    public void testNegateIndirectCalled() {
+        cpuSpy.executeInstruction(0x60);
+        verify(memorySpy).getIndirect(registersSpy);
+        verify(cpuSpy).negateM(new UnsignedWord(1));
+    }
+
+    @Test
     public void testNegateExtendedCalled() {
         cpuSpy.executeInstruction(0x70);
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).negateM(new UnsignedWord(0));
+    }
+
+    @Test
+    public void testComplementDirectCalled() {
+        cpuSpy.executeInstruction(0x03);
+        verify(memorySpy).getDirect(registersSpy);
+        verify(cpuSpy).complementM(new UnsignedWord(0));
+    }
+
+    @Test
+    public void testComplementIndirectCalled() {
+        cpuSpy.executeInstruction(0x63);
+        verify(memorySpy).getIndirect(registersSpy);
+        verify(cpuSpy).complementM(new UnsignedWord(1));
+    }
+
+    @Test
+    public void testComplementExtendedCalled() {
+        cpuSpy.executeInstruction(0x73);
+        verify(memorySpy).getExtended(registersSpy);
+        verify(cpuSpy).complementM(new UnsignedWord(0));
     }
 }

@@ -46,9 +46,28 @@ public class CPU
                 setShortDesc("NEGM, DIR [%04X]", memoryResult);
                 break;
 
+            /* COM - Complement M - Direct */
+            case 0x03:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                complementM(memoryResult.getResult());
+                setShortDesc("COMM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indirect */
             case 0x60:
+                memoryResult = memory.getIndirect(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                negateM(memoryResult.getResult());
+                setShortDesc("NEGM, IND [%04X]", memoryResult);
+                break;
 
+            /* COM - Complement M - Indirect */
+            case 0x63:
+                memoryResult = memory.getIndirect(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                complementM(memoryResult.getResult());
+                setShortDesc("COMM, IND [%04X]", memoryResult);
                 break;
 
             /* NEG - Negate M - Extended */
@@ -59,9 +78,32 @@ public class CPU
                 setShortDesc("NEGM, EXT [%04X]", memoryResult);
                 break;
 
+            /* COM - Complement M - Extended */
+            case 0x73:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                complementM(memoryResult.getResult());
+                setShortDesc("COMM, EXT [%04X]", memoryResult);
+                break;
+
         }
 
         return operationTicks;
+    }
+
+    /**
+     * Inverts all bits in the byte at the specified address.
+     *
+     * @param address the address of the byte to modify
+     */
+    public void complementM(UnsignedWord address) {
+        UnsignedByte tempByte = memory.readByte(address);
+        tempByte = new UnsignedByte(~(tempByte.getShort()));
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
+        regs.cc.or(Registers.CC_C);
+        regs.cc.or(tempByte.isNegative() ? Registers.CC_N : 0);
+        regs.cc.or(tempByte.isZero() ? Registers.CC_Z : 0);
+        memory.writeByte(address, tempByte);
     }
 
     /**
