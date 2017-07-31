@@ -10,24 +10,21 @@ package ca.craigthomas.yacoco3e.datatypes;
  */
 public class UnsignedWord
 {
-    /* The high 8 bits for the word */
-    private UnsignedByte highByte;
-
-    /* The low 8 bits for the word */
-    private UnsignedByte lowByte;
+    /* The value of the word */
+    private int value;
 
     public UnsignedWord(int value) {
         set(value);
     }
 
     public UnsignedWord(UnsignedByte high, UnsignedByte low) {
-        highByte = high;
-        lowByte = low;
+        value = 0;
+        high(high);
+        low(low);
     }
 
     public UnsignedWord() {
-        highByte = new UnsignedByte(0);
-        lowByte = new UnsignedByte(0);
+        value = 0;
     }
 
     /**
@@ -36,7 +33,8 @@ public class UnsignedWord
      * @param high the high byte for the word
      */
     public void high(UnsignedByte high) {
-        highByte = high;
+        value &= 0x00FF;
+        value += (high.getShort() << 8);
     }
 
     /**
@@ -45,7 +43,8 @@ public class UnsignedWord
      * @param low the low byte for the word
      */
     public void low(UnsignedByte low) {
-        lowByte = low;
+        value &= 0xFF00;
+        value += low.getShort();
     }
 
     /**
@@ -54,7 +53,6 @@ public class UnsignedWord
      * @return the next byte to read
      */
     public UnsignedWord next() {
-        int value = getInt();
         value += 1;
         return new UnsignedWord(value);
     }
@@ -65,9 +63,44 @@ public class UnsignedWord
      * @param value the additional value to add
      */
     public void add(int value) {
-        int newValue = getInt();
-        newValue += value;
-        set(newValue);
+        this.value += value;
+        and(0xFFFF);
+    }
+
+    /**
+     * Applies the specified mask using an AND operation.
+     *
+     * @param mask the mask to apply
+     */
+    public void and(int mask) {
+        value &= mask;
+    }
+
+    /**
+     * Applies the specified mask using an OR operation.
+     *
+     * @param mask the mask to apply
+     */
+    public void or(int mask) {
+        value |= mask;
+    }
+
+    /**
+     * Will return true if the byte value is zero.
+     *
+     * @return True if the value is zero
+     */
+    public boolean isZero() {
+        return value == 0;
+    }
+
+    /**
+     * Will return true if the highest bit of the word is set (negative).
+     *
+     * @return True if the signed value of the byte would be negative
+     */
+    public boolean isNegative() {
+        return isMasked(0x8000);
     }
 
     /**
@@ -87,8 +120,7 @@ public class UnsignedWord
      * @param value the new value to set
      */
     public void set(int value) {
-        highByte = new UnsignedByte((value & 0xFF00) >> 8);
-        lowByte = new UnsignedByte(value & 0x00FF);
+        this.value = (value & 0xFFFF);
     }
 
     /**
@@ -97,10 +129,7 @@ public class UnsignedWord
      * @return the integer representation of the word
      */
     public int getInt() {
-        int result = highByte.getShort();
-        result = result << 8;
-        result |= lowByte.getShort();
-        return result;
+        return value;
     }
 
     /**
@@ -110,13 +139,7 @@ public class UnsignedWord
      * @return the signed integer representation of the word
      */
     public int getSignedInt() {
-        if (highByte.isNegative()) {
-            int result = highByte.getShort() & 0x7F;
-            result = result << 8;
-            result |= lowByte.getShort();
-            return -result;
-        }
-        return getInt();
+        return (isMasked(0x8000)) ? -(value & 0x7FFF) : value;
     }
 
     /**
@@ -125,7 +148,7 @@ public class UnsignedWord
      * @return a new copy of the UnsignedWord
      */
     public UnsignedWord copy() {
-        return new UnsignedWord(getInt());
+        return new UnsignedWord(value);
     }
 
     @Override
@@ -145,6 +168,6 @@ public class UnsignedWord
 
     @Override
     public String toString() {
-        return String.format("%02X%02X", highByte.getShort(), lowByte.getShort());
+        return String.format("%04X", value);
     }
 }

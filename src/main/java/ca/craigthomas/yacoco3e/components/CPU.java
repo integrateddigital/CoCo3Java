@@ -32,7 +32,7 @@ public class CPU
      * @param operand the operand containing the instruction to execute
      * @return the number of ticks taken up by the instruction
      */
-    int executeInstruction(int operand) {
+    int executeInstruction(int operand) throws IllegalIndexedPostbyteException {
         int operationTicks = 0;
         MemoryResult memoryResult;
 

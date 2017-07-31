@@ -14,6 +14,10 @@ public class UnsignedByte
     /* The underlying value of the byte */
     private short value;
 
+    public UnsignedByte() {
+        this(0);
+    }
+
     public UnsignedByte(int value) {
         this.value = (short) (value & 0xFF);
     }
@@ -62,6 +66,16 @@ public class UnsignedByte
     }
 
     /**
+     * Adds the specified value to the current byte.
+     *
+     * @param value the additional value to add
+     */
+    public void add(int value) {
+        this.value += value;
+        and(0xFF);
+    }
+
+    /**
      * Applies the specified mask using an AND operation.
      *
      * @param mask the mask to apply
@@ -104,6 +118,10 @@ public class UnsignedByte
      */
     public UnsignedByte copy() {
         return new UnsignedByte(getShort());
+    }
+
+    public String toString() {
+        return String.format("%02X", value);
     }
 
     @Override

@@ -50,9 +50,25 @@ public class Memory
         );
     }
 
-    public MemoryResult getIndirect(UnsignedWord address, Registers regs) {
+    /**
+     * Given the current registers, and an address into memory, return an
+     * UnsignedWord that is based on the value of the byte that occurs at
+     * the specified address. This address contains a "post-byte" value that
+     * encodes one of several different meanings. See the inline comments for
+     * how the post-byte value is checked.
+     *
+     * @param address the address of the post-byte in memory
+     * @param regs the current state of the registers
+     *
+     * @return the value pointed to by the post-byte (or indexed location)
+     * @throws IllegalIndexedPostbyteException
+     */
+    public MemoryResult getIndirect(UnsignedWord address, Registers regs) throws IllegalIndexedPostbyteException {
         UnsignedByte postByte = readByte(address).copy();
         UnsignedWord register = new UnsignedWord(0);
+        UnsignedWord result;
+        UnsignedByte tempByte;
+        UnsignedWord tempWord;
         int registerFlag = Registers.REG_UNKNOWN;
         int bytesConsumed = 1;
         int offset = 0;
@@ -67,29 +83,30 @@ public class Memory
             } else {
                 offset += postByte.getShort();
             }
-            address.add(offset);
-            return new MemoryResult(bytesConsumed, address);
+            result = address.copy();
+            result.add(offset);
+            return new MemoryResult(bytesConsumed, result);
         }
 
         /* Check to see if a register should be modified */
         switch (postByte.getShort() & 0x60) {
             case 0x00:
-                register = regs.getX().copy();
+                register = regs.getX();
                 registerFlag = Registers.REG_X;
                 break;
 
             case 0x20:
-                register = regs.getY().copy();
+                register = regs.getY();
                 registerFlag = Registers.REG_Y;
                 break;
 
             case 0x40:
-                register = regs.getU().copy();
+                register = regs.getU();
                 registerFlag = Registers.REG_U;
                 break;
 
             case 0x60:
-                register = regs.getS().copy();
+                register = regs.getS();
                 registerFlag = Registers.REG_S;
                 break;
 
@@ -97,55 +114,116 @@ public class Memory
                 break;
         }
 
-        /* Check the postbyte for the offset codes */
+        /* Check the post-byte for the offset codes */
         switch (postByte.getShort() & 0xF) {
             case 0x0:
                 /* ,R+ */
+                result = register.copy();
                 addToReg = 1;
                 break;
 
             case 0x1:
                 /* ,R++ */
+                result = register.copy();
                 addToReg = 2;
                 break;
 
             case 0x2:
                 /* ,R- */
+                result = register.copy();
                 addToReg = -1;
                 break;
 
             case 0x3:
                 /* ,R-- */
+                result = register.copy();
                 addToReg = -2;
                 break;
 
             case 0x4:
                 /* Nothing */
+                result = register.copy();
                 break;
 
             case 0x5:
                 /* B,R */
-                addToReg = regs.getB().getSignedShort();
+                result = register.copy();
+                result.add(regs.getB().getSignedShort());
                 break;
 
             case 0x6:
                 /* A,R */
-                addToReg = regs.getA().getSignedShort();
+                result = register.copy();
+                result.add(regs.getA().getSignedShort());
                 break;
 
             case 0x8:
                 /* nn,R - 8-bit offset */
-                addToReg = readByte(address).getSignedShort();
+                tempByte = readByte(address);
+                result = register.copy();
+                result.add(tempByte.getSignedShort());
                 bytesConsumed++;
                 break;
 
             case 0x9:
                 /* nnnn,R - 16-bit offset */
-                addToReg = readWord(address).getSignedInt();
+                tempWord = readWord(address);
+                tempByte = readByte(tempWord);
+                result = register.copy();
+                result.add(tempByte.getSignedShort());
                 bytesConsumed += 2;
                 break;
+
+            case 0xB:
+                /* D,R */
+                result = regs.binaryAdd(register, regs.getD(), false, false, false);
+                break;
+
+            case 0xC:
+                /* nn,PC - 8-bit offset */
+                tempByte = readByte(address);
+                result = regs.getPC().copy();
+                result.add(tempByte.getSignedShort());
+                bytesConsumed = 1;
+                break;
+
+            case 0xD:
+                /* nnnn,PC - 16-bit offset */
+                tempWord = readWord(address);
+                result = regs.getPC().copy();
+                result.add(tempWord.getSignedInt());
+                bytesConsumed = 2;
+                break;
+
+            default:
+                throw new IllegalIndexedPostbyteException(postByte);
         }
-        return new MemoryResult(bytesConsumed, new UnsignedWord(0));
+
+        /* If the 5-bit code starts with 1, do indirect addressing */
+        if (postByte.isMasked(0x10)) {
+            return new MemoryResult(bytesConsumed, readWord(result));
+        }
+
+        /* Before we calculate the address, post increment the registers */
+        switch (registerFlag) {
+            case Registers.REG_X:
+                regs.getX().add(addToReg);
+                break;
+
+            case Registers.REG_Y:
+                regs.getY().add(addToReg);
+                break;
+
+            case Registers.REG_U:
+                regs.getU().add(addToReg);
+                break;
+
+            case Registers.REG_S:
+                regs.getS().add(addToReg);
+                break;
+        }
+
+        return new MemoryResult(bytesConsumed, result);
     }
 
     /**
