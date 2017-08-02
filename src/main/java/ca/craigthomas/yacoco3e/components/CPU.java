@@ -69,7 +69,15 @@ public class CPU
                 setShortDesc("RORM, DIR [%04X]", memoryResult);
                 break;
 
-            /* NEG - Negate M - Indirect */
+            /* ASR - Arithmetic Shift Right - Direct */
+            case 0x07:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::arithmeticShiftRight, memoryResult);
+                setShortDesc("ASRM, DIR [%04X]", memoryResult);
+                break;
+
+            /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
@@ -77,7 +85,7 @@ public class CPU
                 setShortDesc("NEGM, IND [%04X]", memoryResult);
                 break;
 
-            /* COM - Complement M - Indirect */
+            /* COM - Complement M - Indexed */
             case 0x63:
                 memoryResult = memory.getIndexed(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
@@ -85,7 +93,7 @@ public class CPU
                 setShortDesc("COMM, IND [%04X]", memoryResult);
                 break;
 
-            /* LSR - Logical Shift Right - Indirect */
+            /* LSR - Logical Shift Right - Indexed */
             case 0x64:
                 memoryResult = memory.getIndexed(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
@@ -93,12 +101,20 @@ public class CPU
                 setShortDesc("LSRM, IND [%04X]", memoryResult);
                 break;
 
-            /* ROR - Rotate Right - Indirect */
+            /* ROR - Rotate Right - Indexed */
             case 0x66:
                 memoryResult = memory.getIndexed(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
                 executeByteFunctionM(this::rotateRight, memoryResult);
                 setShortDesc("RORM, IND [%04X]", memoryResult);
+                break;
+
+            /* ASR - Arithmetic Shift Right - Indexed */
+            case 0x67:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::arithmeticShiftRight, memoryResult);
+                setShortDesc("ASRM, IND [%04X]", memoryResult);
                 break;
 
             /* NEG - Negate M - Extended */
@@ -131,6 +147,14 @@ public class CPU
                 operationTicks = 7;
                 executeByteFunctionM(this::rotateRight, memoryResult);
                 setShortDesc("RORM, EXT [%04X]", memoryResult);
+                break;
+
+            /* ASR - Arithmetic Shift Right - Extended */
+            case 0x77:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::arithmeticShiftRight, memoryResult);
+                setShortDesc("ASRM, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -211,6 +235,23 @@ public class CPU
     public UnsignedByte rotateRight(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
         result.add(regs.ccCarrySet() ? 0x80 : 0x0);
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
+        regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        return result;
+    }
+
+    /**
+     * Shifts the bits of a byte one place to the right. Will maintain a copy
+     * of bit 7 in the 7th bit. Bit 0 will be shifted into the carry bit.
+     *
+     * @param value the value to shift right
+     * @return the shifted value
+     */
+    public UnsignedByte arithmeticShiftRight(UnsignedByte value) {
+        UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
+        result.add(value.isMasked(0x80) ? 0x80 : 0);
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
         regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
         regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
