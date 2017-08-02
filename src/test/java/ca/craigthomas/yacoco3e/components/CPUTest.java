@@ -176,6 +176,36 @@ public class CPUTest
     }
 
     @Test
+    public void testArithmeticShiftLeftOneCorrect() {
+        UnsignedByte result = cpu.arithmeticShiftLeft(new UnsignedByte(0x1));
+        assertEquals(0x2, result.getShort());
+        assertFalse(registers.ccZeroSet());
+        assertFalse(registers.ccOverflowSet());
+        assertFalse(registers.ccNegativeSet());
+        assertFalse(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testArithmeticShiftLeftHighBitShiftedToCarry() {
+        UnsignedByte result = cpu.arithmeticShiftLeft(new UnsignedByte(0x81));
+        assertEquals(0x2, result.getShort());
+        assertFalse(registers.ccZeroSet());
+        assertFalse(registers.ccOverflowSet());
+        assertFalse(registers.ccNegativeSet());
+        assertTrue(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testArithmeticShiftLeftOverflowSet() {
+        UnsignedByte result = cpu.arithmeticShiftLeft(new UnsignedByte(0xC0));
+        assertEquals(0x80, result.getShort());
+        assertFalse(registers.ccZeroSet());
+        assertTrue(registers.ccOverflowSet());
+        assertTrue(registers.ccNegativeSet());
+        assertTrue(registers.ccCarrySet());
+    }
+
+    @Test
     public void testNegateDirectCalled() {
         cpuSpy.executeInstruction(0x00);
         verify(memorySpy).getDirect(registersSpy);
@@ -274,9 +304,30 @@ public class CPUTest
     }
 
     @Test
-    public void testArithmeticShiftExtendedCalled() {
+    public void testArithmeticShiftRightExtendedCalled() {
         cpuSpy.executeInstruction(0x77);
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testArithmeticShiftLeftDirectCalled() {
+        cpuSpy.executeInstruction(0x08);
+        verify(memorySpy).getDirect(registersSpy);
+        verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testArithmeticShiftLeftIndexedCalled() {
+        cpuSpy.executeInstruction(0x68);
+        verify(memorySpy).getIndexed(registersSpy);
+        verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testArithmeticShiftLeftExtendedCalled() {
+        cpuSpy.executeInstruction(0x78);
+        verify(memorySpy).getExtended(registersSpy);
+        verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
     }
 }

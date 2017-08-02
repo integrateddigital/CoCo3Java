@@ -77,6 +77,14 @@ public class CPU
                 setShortDesc("ASRM, DIR [%04X]", memoryResult);
                 break;
 
+            /* ASL - Arithmetic Shift Left - Direct */
+            case 0x08:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::arithmeticShiftLeft, memoryResult);
+                setShortDesc("ASLM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
@@ -117,6 +125,14 @@ public class CPU
                 setShortDesc("ASRM, IND [%04X]", memoryResult);
                 break;
 
+            /* ASL - Arithmetic Shift Left - Indexed */
+            case 0x68:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::arithmeticShiftLeft, memoryResult);
+                setShortDesc("ASLM, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -155,6 +171,14 @@ public class CPU
                 operationTicks = 7;
                 executeByteFunctionM(this::arithmeticShiftRight, memoryResult);
                 setShortDesc("ASRM, EXT [%04X]", memoryResult);
+                break;
+
+            /* ASL - Arithmetic Shift Left - Extended */
+            case 0x78:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::arithmeticShiftLeft, memoryResult);
+                setShortDesc("ASLM, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -254,6 +278,23 @@ public class CPU
         result.add(value.isMasked(0x80) ? 0x80 : 0);
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
         regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        return result;
+    }
+
+    /**
+     * Shifts the bits of a byte one place to the left. Bit 0 will be filled
+     * with a zero, while bit 7 will be shifted into the carry bit.
+     *
+     * @param value the value to shift left
+     * @return the shifted value
+     */
+    public UnsignedByte arithmeticShiftLeft(UnsignedByte value) {
+        UnsignedByte result = new UnsignedByte(value.getShort() << 1);
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V | Registers.CC_C));
+        regs.cc.or(value.isMasked(0x80) ? Registers.CC_C : 0);
+        regs.cc.or(value.isMasked(0xC0) ? Registers.CC_V : 0);
         regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
         regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
         return result;
