@@ -13,6 +13,7 @@ import ca.craigthomas.yacoco3e.datatypes.Registers;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.theories.suppliers.TestedOn;
 
 public class CPUTest
 {
@@ -206,128 +207,45 @@ public class CPUTest
     }
 
     @Test
-    public void testNegateDirectCalled() {
-        cpuSpy.executeInstruction(0x00);
-        verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).negate(new UnsignedByte(0));
+    public void testRotateLeftOneCorrect() {
+        UnsignedByte result = cpu.rotateLeft(new UnsignedByte(0x1));
+        assertEquals(0x2, result.getShort());
+        assertFalse(registers.ccCarrySet());
+        assertFalse(registers.ccOverflowSet());
+        assertFalse(registers.ccNegativeSet());
+        assertFalse(registers.ccZeroSet());
     }
 
     @Test
-    public void testNegateIndexedCalled() {
-        cpuSpy.executeInstruction(0x60);
-        verify(memorySpy).getIndexed(registersSpy);
-        verify(cpuSpy).negate(new UnsignedByte(0));
+    public void testRotateLeftSetsCarry() {
+        UnsignedByte result = cpu.rotateLeft(new UnsignedByte(0x80));
+        assertEquals(0x0, result.getShort());
+        assertTrue(registers.ccCarrySet());
+        assertFalse(registers.ccOverflowSet());
+        assertTrue(registers.ccZeroSet());
+        assertFalse(registers.ccNegativeSet());
     }
 
     @Test
-    public void testNegateExtendedCalled() {
-        cpuSpy.executeInstruction(0x70);
-        verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).negate(new UnsignedByte(0));
+    public void testRotateLeftRotatesCarryToLowestBit() {
+        registers.setCCCarry();
+        UnsignedByte result = cpu.rotateLeft(new UnsignedByte(0x1));
+        assertEquals(0x3, result.getShort());
+        assertFalse(registers.ccCarrySet());
+        assertFalse(registers.ccOverflowSet());
+        assertFalse(registers.ccZeroSet());
+        assertFalse(registers.ccNegativeSet());
     }
 
     @Test
-    public void testComplementDirectCalled() {
-        cpuSpy.executeInstruction(0x03);
-        verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).compliment(new UnsignedByte(0));
+    public void testRotateLeftSetsOverflow() {
+        UnsignedByte result = cpu.rotateLeft(new UnsignedByte(0xC0));
+        assertEquals(0x80, result.getShort());
+        assertTrue(registers.ccCarrySet());
+        assertTrue(registers.ccOverflowSet());
+        assertFalse(registers.ccZeroSet());
+        assertTrue(registers.ccNegativeSet());
     }
 
-    @Test
-    public void testComplementIndexedCalled() {
-        cpuSpy.executeInstruction(0x63);
-        verify(memorySpy).getIndexed(registersSpy);
-        verify(cpuSpy).compliment(new UnsignedByte(0));
-    }
 
-    @Test
-    public void testComplementExtendedCalled() {
-        cpuSpy.executeInstruction(0x73);
-        verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).compliment(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testLogicalShiftRightDirectCalled() {
-        cpuSpy.executeInstruction(0x04);
-        verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testLogicalShiftRightIndexedCalled() {
-        cpuSpy.executeInstruction(0x64);
-        verify(memorySpy).getIndexed(registersSpy);
-        verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testLogicalShiftRightExtendedCalled() {
-        cpuSpy.executeInstruction(0x74);
-        verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testRotateRightDirectCalled() {
-        cpuSpy.executeInstruction(0x06);
-        verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).rotateRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testRotateRightIndexedCalled() {
-        cpuSpy.executeInstruction(0x66);
-        verify(memorySpy).getIndexed(registersSpy);
-        verify(cpuSpy).rotateRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testRotateRightExtendedCalled() {
-        cpuSpy.executeInstruction(0x76);
-        verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).rotateRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testArithmeticShiftRightDirectCalled() {
-        cpuSpy.executeInstruction(0x07);
-        verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testArithmeticShiftIndexedCalled() {
-        cpuSpy.executeInstruction(0x67);
-        verify(memorySpy).getIndexed(registersSpy);
-        verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testArithmeticShiftRightExtendedCalled() {
-        cpuSpy.executeInstruction(0x77);
-        verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testArithmeticShiftLeftDirectCalled() {
-        cpuSpy.executeInstruction(0x08);
-        verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testArithmeticShiftLeftIndexedCalled() {
-        cpuSpy.executeInstruction(0x68);
-        verify(memorySpy).getIndexed(registersSpy);
-        verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
-    }
-
-    @Test
-    public void testArithmeticShiftLeftExtendedCalled() {
-        cpuSpy.executeInstruction(0x78);
-        verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
-    }
 }

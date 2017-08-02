@@ -85,6 +85,14 @@ public class CPU
                 setShortDesc("ASLM, DIR [%04X]", memoryResult);
                 break;
 
+            /* ROL - Rotate Left - Direct */
+            case 0x09:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::rotateLeft, memoryResult);
+                setShortDesc("ROLM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
@@ -133,6 +141,14 @@ public class CPU
                 setShortDesc("ASLM, IND [%04X]", memoryResult);
                 break;
 
+            /* ROL - Rotate Left - Indexed */
+            case 0x69:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::rotateLeft, memoryResult);
+                setShortDesc("ROLM, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -179,6 +195,14 @@ public class CPU
                 operationTicks = 7;
                 executeByteFunctionM(this::arithmeticShiftLeft, memoryResult);
                 setShortDesc("ASLM, EXT [%04X]", memoryResult);
+                break;
+
+            /* ROL - Rotate Left - Extended */
+            case 0x79:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::rotateLeft, memoryResult);
+                setShortDesc("ROLM, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -293,6 +317,24 @@ public class CPU
     public UnsignedByte arithmeticShiftLeft(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() << 1);
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V | Registers.CC_C));
+        regs.cc.or(value.isMasked(0x80) ? Registers.CC_C : 0);
+        regs.cc.or(value.isMasked(0xC0) ? Registers.CC_V : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        return result;
+    }
+
+    /**
+     * Rotates the bits of a byte one place to the left. Will rotate the
+     * carry bit into the lowest bit of the byte if set.
+     *
+     * @param value the value to rotate left
+     * @return the rotated value
+     */
+    public UnsignedByte rotateLeft(UnsignedByte value) {
+        UnsignedByte result = new UnsignedByte(value.getShort() << 1);
+        result.add(regs.ccCarrySet() ? 0x1 : 0x0);
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C | Registers.CC_V));
         regs.cc.or(value.isMasked(0x80) ? Registers.CC_C : 0);
         regs.cc.or(value.isMasked(0xC0) ? Registers.CC_V : 0);
         regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
