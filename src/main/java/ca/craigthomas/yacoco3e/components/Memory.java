@@ -62,7 +62,7 @@ public class Memory
      * @return the value pointed to by the post-byte (or indexed location)
      * @throws IllegalIndexedPostbyteException
      */
-    public MemoryResult getIndirect(Registers regs) {
+    public MemoryResult getIndexed(Registers regs) {
         UnsignedWord address = regs.getPC().next();
         UnsignedByte postByte = readByte(address).copy();
         UnsignedWord register = new UnsignedWord(0);

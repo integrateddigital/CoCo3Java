@@ -11,7 +11,6 @@ import static org.junit.Assert.*;
 
 import ca.craigthomas.yacoco3e.datatypes.Registers;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
-import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,58 +39,58 @@ public class CPUTest
 
     @Test
     public void testNegateAllOnes() {
-        UnsignedByte result = cpu.negateM(new UnsignedByte(0xFF));
+        UnsignedByte result = cpu.negate(new UnsignedByte(0xFF));
         assertEquals(new UnsignedByte(1), result);
     }
 
     @Test
     public void testNegateOne() {
-        UnsignedByte result = cpu.negateM(new UnsignedByte(0x01));
+        UnsignedByte result = cpu.negate(new UnsignedByte(0x01));
         assertEquals(new UnsignedByte(0xFF), result);
     }
 
     @Test
     public void testNegateSetsOverflowFlag() {
-        cpu.negateM(new UnsignedByte(0x01));
+        cpu.negate(new UnsignedByte(0x01));
         assertTrue(registers.ccOverflowSet());
     }
 
     @Test
     public void testNegateSetsNegativeFlag() {
-        cpu.negateM(new UnsignedByte(0x01));
+        cpu.negate(new UnsignedByte(0x01));
         assertTrue(registers.ccNegativeSet());
     }
 
     @Test
     public void testComplementAllOnes() {
-        UnsignedByte result = cpu.complimentM(new UnsignedByte(0xFF));
+        UnsignedByte result = cpu.compliment(new UnsignedByte(0xFF));
         assertEquals(new UnsignedByte(0), result);
     }
 
     @Test
     public void testComplementOne() {
-        UnsignedByte result = cpu.complimentM(new UnsignedByte(0x01));
+        UnsignedByte result = cpu.compliment(new UnsignedByte(0x01));
         assertEquals(new UnsignedByte(0xFE), result);
     }
 
     @Test
     public void testComplementSetsCarryFlag() {
-        cpu.complimentM(new UnsignedByte(0x01));
+        cpu.compliment(new UnsignedByte(0x01));
         assertTrue(registers.ccCarrySet());
     }
 
     @Test
     public void testComplementSetsNegativeFlagCorrect() {
-        cpu.complimentM(new UnsignedByte(0x01));
+        cpu.compliment(new UnsignedByte(0x01));
         assertTrue(registers.ccNegativeSet());
 
-        cpu.complimentM(new UnsignedByte(0xFE));
+        cpu.compliment(new UnsignedByte(0xFE));
         assertFalse(registers.ccNegativeSet());
     }
 
     @Test
     public void testComplementSetsZeroFlagCorrect() {
-        UnsignedByte result = cpu.complimentM(new UnsignedByte(0xFF));
+        UnsignedByte result = cpu.compliment(new UnsignedByte(0xFF));
         assertEquals(0, result.getShort());
         assertTrue(registers.ccZeroSet());
     }
@@ -100,18 +99,13 @@ public class CPUTest
     public void testLogicalShiftRightMovesOneBitCorrect() {
         UnsignedByte result = cpu.logicalShiftRight(new UnsignedByte(0x2));
         assertEquals(new UnsignedByte(1), result);
+        assertFalse(registers.ccCarrySet());
     }
 
     @Test
     public void testLogicalShiftRightMovesOneBitToZero() {
         UnsignedByte result = cpu.logicalShiftRight(new UnsignedByte(0x1));
         assertEquals(new UnsignedByte(0), result);
-    }
-
-    @Test
-    public void testLogicalShiftRightSetsCarryBit() {
-        UnsignedByte result = cpu.logicalShiftRight(new UnsignedByte(0x01));
-        assertEquals(new UnsignedByte(0x0), result);
         assertTrue(registers.ccCarrySet());
     }
 
@@ -120,48 +114,89 @@ public class CPUTest
         UnsignedByte result = cpu.logicalShiftRight(new UnsignedByte(0x1));
         assertEquals(new UnsignedByte(0), result);
         assertTrue(registers.ccZeroSet());
+        assertTrue(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testRotateRightMovesOneBitCorrect() {
+        UnsignedByte result = cpu.rotateRight(new UnsignedByte(0x2));
+        assertEquals(new UnsignedByte(1), result);
+        assertFalse(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testRotateRightMovesOneBitCorrectWithCarry() {
+        registers.setCCCarry();
+        UnsignedByte result = cpu.rotateRight(new UnsignedByte(0x2));
+        assertEquals(new UnsignedByte(0x81), result);
+        assertFalse(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testRotateRightMovesOneBitToZero() {
+        UnsignedByte result = cpu.rotateRight(new UnsignedByte(0x1));
+        assertEquals(new UnsignedByte(0), result);
+        assertTrue(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testRotateRightSetsZeroBit() {
+        UnsignedByte result = cpu.rotateRight(new UnsignedByte(0x1));
+        assertEquals(new UnsignedByte(0), result);
+        assertTrue(registers.ccZeroSet());
+        assertTrue(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testRotateRightSetsNegativeBit() {
+        registers.setCCCarry();
+        UnsignedByte result = cpu.rotateRight(new UnsignedByte(0x1));
+        assertEquals(new UnsignedByte(0x80), result);
+        assertFalse(registers.ccZeroSet());
+        assertTrue(registers.ccCarrySet());
+        assertTrue(registers.ccNegativeSet());
     }
 
     @Test
     public void testNegateDirectCalled() {
         cpuSpy.executeInstruction(0x00);
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).negateM(new UnsignedByte(0));
+        verify(cpuSpy).negate(new UnsignedByte(0));
     }
 
     @Test
     public void testNegateIndirectCalled() {
         cpuSpy.executeInstruction(0x60);
-        verify(memorySpy).getIndirect(registersSpy);
-        verify(cpuSpy).negateM(new UnsignedByte(0));
+        verify(memorySpy).getIndexed(registersSpy);
+        verify(cpuSpy).negate(new UnsignedByte(0));
     }
 
     @Test
     public void testNegateExtendedCalled() {
         cpuSpy.executeInstruction(0x70);
         verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).negateM(new UnsignedByte(0));
+        verify(cpuSpy).negate(new UnsignedByte(0));
     }
 
     @Test
     public void testComplementDirectCalled() {
         cpuSpy.executeInstruction(0x03);
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).complimentM(new UnsignedByte(0));
+        verify(cpuSpy).compliment(new UnsignedByte(0));
     }
 
     @Test
     public void testComplementIndirectCalled() {
         cpuSpy.executeInstruction(0x63);
-        verify(memorySpy).getIndirect(registersSpy);
-        verify(cpuSpy).complimentM(new UnsignedByte(0));
+        verify(memorySpy).getIndexed(registersSpy);
+        verify(cpuSpy).compliment(new UnsignedByte(0));
     }
 
     @Test
     public void testComplementExtendedCalled() {
         cpuSpy.executeInstruction(0x73);
         verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).complimentM(new UnsignedByte(0));
+        verify(cpuSpy).compliment(new UnsignedByte(0));
     }
 
     @Test
@@ -174,7 +209,7 @@ public class CPUTest
     @Test
     public void testLogicalShiftRightIndirectCalled() {
         cpuSpy.executeInstruction(0x64);
-        verify(memorySpy).getIndirect(registersSpy);
+        verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
     }
 
@@ -183,5 +218,26 @@ public class CPUTest
         cpuSpy.executeInstruction(0x74);
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testRotateRightDirectCalled() {
+        cpuSpy.executeInstruction(0x06);
+        verify(memorySpy).getDirect(registersSpy);
+        verify(cpuSpy).rotateRight(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testRotateRightIndirectCalled() {
+        cpuSpy.executeInstruction(0x66);
+        verify(memorySpy).getIndexed(registersSpy);
+        verify(cpuSpy).rotateRight(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testRotateRightExtendedCalled() {
+        cpuSpy.executeInstruction(0x76);
+        verify(memorySpy).getExtended(registersSpy);
+        verify(cpuSpy).rotateRight(new UnsignedByte(0));
     }
 }

@@ -41,7 +41,7 @@ public class CPU
             case 0x00:
                 memoryResult = memory.getDirect(regs);
                 operationTicks = 6;
-                executeByteFunctionM(this::negateM, memoryResult);
+                executeByteFunctionM(this::negate, memoryResult);
                 setShortDesc("NEGM, DIR [%04X]", memoryResult);
                 break;
 
@@ -49,7 +49,7 @@ public class CPU
             case 0x03:
                 memoryResult = memory.getDirect(regs);
                 operationTicks = 6;
-                executeByteFunctionM(this::complimentM, memoryResult);
+                executeByteFunctionM(this::compliment, memoryResult);
                 setShortDesc("COMM, DIR [%04X]", memoryResult);
                 break;
 
@@ -61,35 +61,51 @@ public class CPU
                 setShortDesc("LSRM, DIR [%04X]", memoryResult);
                 break;
 
+            /* ROR - Rotate Right - Direct */
+            case 0x06:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::rotateRight, memoryResult);
+                setShortDesc("RORM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indirect */
             case 0x60:
-                memoryResult = memory.getIndirect(regs);
+                memoryResult = memory.getIndexed(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
-                executeByteFunctionM(this::negateM, memoryResult);
+                executeByteFunctionM(this::negate, memoryResult);
                 setShortDesc("NEGM, IND [%04X]", memoryResult);
                 break;
 
             /* COM - Complement M - Indirect */
             case 0x63:
-                memoryResult = memory.getIndirect(regs);
+                memoryResult = memory.getIndexed(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
-                executeByteFunctionM(this::complimentM, memoryResult);
+                executeByteFunctionM(this::compliment, memoryResult);
                 setShortDesc("COMM, IND [%04X]", memoryResult);
                 break;
 
             /* LSR - Logical Shift Right - Indirect */
             case 0x64:
-                memoryResult = memory.getIndirect(regs);
+                memoryResult = memory.getIndexed(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
                 executeByteFunctionM(this::logicalShiftRight, memoryResult);
                 setShortDesc("LSRM, IND [%04X]", memoryResult);
+                break;
+
+            /* ROR - Rotate Right - Indirect */
+            case 0x66:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::rotateRight, memoryResult);
+                setShortDesc("RORM, IND [%04X]", memoryResult);
                 break;
 
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
                 operationTicks = 7;
-                executeByteFunctionM(this::negateM, memoryResult);
+                executeByteFunctionM(this::negate, memoryResult);
                 setShortDesc("NEGM, EXT [%04X]", memoryResult);
                 break;
 
@@ -97,7 +113,7 @@ public class CPU
             case 0x73:
                 memoryResult = memory.getExtended(regs);
                 operationTicks = 7;
-                executeByteFunctionM(this::complimentM, memoryResult);
+                executeByteFunctionM(this::compliment, memoryResult);
                 setShortDesc("COMM, EXT [%04X]", memoryResult);
                 break;
 
@@ -109,6 +125,13 @@ public class CPU
                 setShortDesc("LSRM, EXT [%04X]", memoryResult);
                 break;
 
+            /* ROR - Rotate Right - Extended */
+            case 0x76:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::rotateRight, memoryResult);
+                setShortDesc("RORM, EXT [%04X]", memoryResult);
+                break;
         }
 
         return operationTicks;
@@ -136,7 +159,7 @@ public class CPU
      * @param value the UnsignedByte to complement
      * @return the complimented value
      */
-    public UnsignedByte complimentM(UnsignedByte value) {
+    public UnsignedByte compliment(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(~(value.getShort()));
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
         regs.cc.or(Registers.CC_C);
@@ -152,7 +175,7 @@ public class CPU
      * @param value the byte to negate
      * @return the negated byte
      */
-    public UnsignedByte negateM(UnsignedByte value) {
+    public UnsignedByte negate(UnsignedByte value) {
         UnsignedByte result = value.twosCompliment();
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V | Registers.CC_C));
         regs.cc.or(result.isMasked(0x80) ? Registers.CC_V : 0);
@@ -164,8 +187,11 @@ public class CPU
     /**
      * Shifts all the bits in the byte to the left by one bit. Returns the
      * result of the operation, while impacting the condition code register.
+     * The lowest bit of the byte is shifted into the condition code carry
+     * bit.
      *
      * @param value the UnsignedByte to operate on
+     * @return the shifted byte value
      */
     public UnsignedByte logicalShiftRight(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
@@ -175,8 +201,20 @@ public class CPU
         return result;
     }
 
-    public void rotateRight(UnsignedWord address) {
-        UnsignedByte tempByte = memory.readByte(address);
-
+    /**
+     * Rotates the bits of a byte one place to the right. Will rotate the
+     * carry bit into the highest bit of the byte if set.
+     *
+     * @param value the value to rotate right
+     * @return the rotated value
+     */
+    public UnsignedByte rotateRight(UnsignedByte value) {
+        UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
+        result.add(regs.ccCarrySet() ? 0x80 : 0x0);
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
+        regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        return result;
     }
 }
