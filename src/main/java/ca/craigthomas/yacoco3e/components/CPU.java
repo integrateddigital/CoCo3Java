@@ -54,6 +54,14 @@ public class CPU
                 setShortDesc("COMM, DIR [%04X]", memoryResult);
                 break;
 
+            /* LSR - Logical Shift Right - Direct */
+            case 0x04:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                logicalShiftRight(memoryResult.getResult());
+                setShortDesc("LSRM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indirect */
             case 0x60:
                 memoryResult = memory.getIndirect(regs);
@@ -70,6 +78,14 @@ public class CPU
                 setShortDesc("COMM, IND [%04X]", memoryResult);
                 break;
 
+            /* LSR - Logical Shift Right - Indirect */
+            case 0x64:
+                memoryResult = memory.getIndirect(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                logicalShiftRight(memoryResult.getResult());
+                setShortDesc("LSRM, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -84,6 +100,14 @@ public class CPU
                 operationTicks = 7;
                 complementM(memoryResult.getResult());
                 setShortDesc("COMM, EXT [%04X]", memoryResult);
+                break;
+
+            /* LSR - Logical Shift Right - Extended */
+            case 0x74:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                logicalShiftRight(memoryResult.getResult());
+                setShortDesc("LSRM, EXT [%04X]", memoryResult);
                 break;
 
         }
@@ -118,6 +142,21 @@ public class CPU
         regs.cc.or(tempByte.isMasked(0x80) ? Registers.CC_V : 0);
         regs.cc.or(tempByte.isZero() ? Registers.CC_Z | Registers.CC_N : 0);
         regs.cc.or(tempByte.isNegative() ? Registers.CC_N : 0);
+        memory.writeByte(address, tempByte);
+    }
+
+    /**
+     * Shifts all the bits in the byte to the left by one bit. Stores the
+     * result back in the address.
+     *
+     * @param address the address of the byte to shift
+     */
+    public void logicalShiftRight(UnsignedWord address) {
+        UnsignedByte tempByte = memory.readByte(address);
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
+        regs.cc.or(tempByte.isMasked(0x80) ? Registers.CC_C : 0);
+        tempByte = new UnsignedByte(tempByte.getShort() >> 1);
+        regs.cc.or(tempByte.isZero() ? Registers.CC_Z : 0);
         memory.writeByte(address, tempByte);
     }
 }

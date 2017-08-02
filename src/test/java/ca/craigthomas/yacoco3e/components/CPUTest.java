@@ -122,6 +122,44 @@ public class CPUTest
     }
 
     @Test
+    public void testLogicalShiftRightMovesOneBitCorrect() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0x2));
+        cpu.logicalShiftRight(address);
+        UnsignedByte result = memory.readByte(address);
+        assertEquals(new UnsignedByte(1), result);
+    }
+
+    @Test
+    public void testLogicalShiftRightMovesOneBitToZero() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0x1));
+        cpu.logicalShiftRight(address);
+        UnsignedByte result = memory.readByte(address);
+        assertEquals(new UnsignedByte(0), result);
+    }
+
+    @Test
+    public void testLogicalShiftRightSetsCarryBit() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0x80));
+        cpu.logicalShiftRight(address);
+        UnsignedByte result = memory.readByte(address);
+        assertEquals(new UnsignedByte(0x40), result);
+        assertTrue(registers.ccCarrySet());
+    }
+
+    @Test
+    public void testLogicalShiftRightSetsZeroBit() {
+        UnsignedWord address = new UnsignedWord(0);
+        memory.writeByte(address, new UnsignedByte(0x1));
+        cpu.logicalShiftRight(address);
+        UnsignedByte result = memory.readByte(address);
+        assertEquals(new UnsignedByte(0), result);
+        assertTrue(registers.ccZeroSet());
+    }
+
+    @Test
     public void testNegateDirectCalled() {
         cpuSpy.executeInstruction(0x00);
         verify(memorySpy).getDirect(registersSpy);
@@ -161,5 +199,26 @@ public class CPUTest
         cpuSpy.executeInstruction(0x73);
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).complementM(new UnsignedWord(0));
+    }
+
+    @Test
+    public void testLogicalShiftRightDirectCalled() {
+        cpuSpy.executeInstruction(0x04);
+        verify(memorySpy).getDirect(registersSpy);
+        verify(cpuSpy).logicalShiftRight(new UnsignedWord(0));
+    }
+
+    @Test
+    public void testLogicalShiftRightIndirectCalled() {
+        cpuSpy.executeInstruction(0x64);
+        verify(memorySpy).getIndirect(registersSpy);
+        verify(cpuSpy).logicalShiftRight(new UnsignedWord(1));
+    }
+
+    @Test
+    public void testLogicalShiftRightExtendedCalled() {
+        cpuSpy.executeInstruction(0x74);
+        verify(memorySpy).getExtended(registersSpy);
+        verify(cpuSpy).logicalShiftRight(new UnsignedWord(0));
     }
 }
