@@ -4,10 +4,9 @@
  */
 package ca.craigthomas.yacoco3e.components;
 
-import ca.craigthomas.yacoco3e.datatypes.MemoryResult;
-import ca.craigthomas.yacoco3e.datatypes.Registers;
-import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
-import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
+import ca.craigthomas.yacoco3e.datatypes.*;
+
+import java.util.function.Function;
 
 public class CPU
 {
@@ -42,7 +41,7 @@ public class CPU
             case 0x00:
                 memoryResult = memory.getDirect(regs);
                 operationTicks = 6;
-                negateM(memoryResult.getResult());
+                executeByteFunctionM(this::negateM, memoryResult);
                 setShortDesc("NEGM, DIR [%04X]", memoryResult);
                 break;
 
@@ -50,7 +49,7 @@ public class CPU
             case 0x03:
                 memoryResult = memory.getDirect(regs);
                 operationTicks = 6;
-                complementM(memoryResult.getResult());
+                executeByteFunctionM(this::complimentM, memoryResult);
                 setShortDesc("COMM, DIR [%04X]", memoryResult);
                 break;
 
@@ -58,7 +57,7 @@ public class CPU
             case 0x04:
                 memoryResult = memory.getDirect(regs);
                 operationTicks = 6;
-                logicalShiftRight(memoryResult.getResult());
+                executeByteFunctionM(this::logicalShiftRight, memoryResult);
                 setShortDesc("LSRM, DIR [%04X]", memoryResult);
                 break;
 
@@ -66,7 +65,7 @@ public class CPU
             case 0x60:
                 memoryResult = memory.getIndirect(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
-                negateM(memoryResult.getResult());
+                executeByteFunctionM(this::negateM, memoryResult);
                 setShortDesc("NEGM, IND [%04X]", memoryResult);
                 break;
 
@@ -74,7 +73,7 @@ public class CPU
             case 0x63:
                 memoryResult = memory.getIndirect(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
-                complementM(memoryResult.getResult());
+                executeByteFunctionM(this::complimentM, memoryResult);
                 setShortDesc("COMM, IND [%04X]", memoryResult);
                 break;
 
@@ -82,7 +81,7 @@ public class CPU
             case 0x64:
                 memoryResult = memory.getIndirect(regs);
                 operationTicks = 4 + memoryResult.getBytesConsumed();
-                logicalShiftRight(memoryResult.getResult());
+                executeByteFunctionM(this::logicalShiftRight, memoryResult);
                 setShortDesc("LSRM, IND [%04X]", memoryResult);
                 break;
 
@@ -90,7 +89,7 @@ public class CPU
             case 0x70:
                 memoryResult = memory.getExtended(regs);
                 operationTicks = 7;
-                negateM(memoryResult.getResult());
+                executeByteFunctionM(this::negateM, memoryResult);
                 setShortDesc("NEGM, EXT [%04X]", memoryResult);
                 break;
 
@@ -98,7 +97,7 @@ public class CPU
             case 0x73:
                 memoryResult = memory.getExtended(regs);
                 operationTicks = 7;
-                complementM(memoryResult.getResult());
+                executeByteFunctionM(this::complimentM, memoryResult);
                 setShortDesc("COMM, EXT [%04X]", memoryResult);
                 break;
 
@@ -106,7 +105,7 @@ public class CPU
             case 0x74:
                 memoryResult = memory.getExtended(regs);
                 operationTicks = 7;
-                logicalShiftRight(memoryResult.getResult());
+                executeByteFunctionM(this::logicalShiftRight, memoryResult);
                 setShortDesc("LSRM, EXT [%04X]", memoryResult);
                 break;
 
@@ -116,47 +115,68 @@ public class CPU
     }
 
     /**
-     * Inverts all bits in the byte at the specified address.
+     * Executes a byte function on the memory location M, and writes the
+     * resultant byte back to the memory location.
      *
-     * @param address the address of the byte to modify
+     * @param function the function to execute
+     * @param memoryResult the MemoryResult where the address is located
      */
-    public void complementM(UnsignedWord address) {
+    public void executeByteFunctionM(Function<UnsignedByte, UnsignedByte> function,
+                                     MemoryResult memoryResult) {
+        UnsignedWord address = memoryResult.getResult();
         UnsignedByte tempByte = memory.readByte(address);
-        tempByte = new UnsignedByte(~(tempByte.getShort()));
+        tempByte = function.apply(tempByte);
+        memory.writeByte(address, tempByte);
+    }
+
+    /**
+     * Inverts all bits in the byte. Returns the complimented value as the
+     * result.
+     *
+     * @param value the UnsignedByte to complement
+     * @return the complimented value
+     */
+    public UnsignedByte complimentM(UnsignedByte value) {
+        UnsignedByte result = new UnsignedByte(~(value.getShort()));
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
         regs.cc.or(Registers.CC_C);
-        regs.cc.or(tempByte.isNegative() ? Registers.CC_N : 0);
-        regs.cc.or(tempByte.isZero() ? Registers.CC_Z : 0);
-        memory.writeByte(address, tempByte);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        return result;
     }
 
     /**
      * Applies the two's compliment value to the contents in the specified
-     * memory address. Stores the result back in the address.
+     * memory address.
      *
-     * @param address the address to modify
+     * @param value the byte to negate
+     * @return the negated byte
      */
-    public void negateM(UnsignedWord address) {
-        UnsignedByte tempByte = memory.readByte(address).twosCompliment();
+    public UnsignedByte negateM(UnsignedByte value) {
+        UnsignedByte result = value.twosCompliment();
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V | Registers.CC_C));
-        regs.cc.or(tempByte.isMasked(0x80) ? Registers.CC_V : 0);
-        regs.cc.or(tempByte.isZero() ? Registers.CC_Z | Registers.CC_N : 0);
-        regs.cc.or(tempByte.isNegative() ? Registers.CC_N : 0);
-        memory.writeByte(address, tempByte);
+        regs.cc.or(result.isMasked(0x80) ? Registers.CC_V : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z | Registers.CC_N : 0);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        return result;
     }
 
     /**
-     * Shifts all the bits in the byte to the left by one bit. Stores the
-     * result back in the address.
+     * Shifts all the bits in the byte to the left by one bit. Returns the
+     * result of the operation, while impacting the condition code register.
      *
-     * @param address the address of the byte to shift
+     * @param value the UnsignedByte to operate on
      */
-    public void logicalShiftRight(UnsignedWord address) {
-        UnsignedByte tempByte = memory.readByte(address);
+    public UnsignedByte logicalShiftRight(UnsignedByte value) {
+        UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
-        regs.cc.or(tempByte.isMasked(0x80) ? Registers.CC_C : 0);
-        tempByte = new UnsignedByte(tempByte.getShort() >> 1);
-        regs.cc.or(tempByte.isZero() ? Registers.CC_Z : 0);
-        memory.writeByte(address, tempByte);
+        regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        return result;
+    }
+
+    public void rotateRight(UnsignedWord address) {
+        UnsignedByte tempByte = memory.readByte(address);
+
     }
 }
