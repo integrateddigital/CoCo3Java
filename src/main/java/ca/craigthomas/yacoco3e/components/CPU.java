@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017 Craig Thomas
+ * Copyright (C) 2017 Craig Thomas
  * This project uses an MIT style license - see LICENSE for details.
  */
 package ca.craigthomas.yacoco3e.components;
@@ -93,6 +93,14 @@ public class CPU
                 setShortDesc("ROLM, DIR [%04X]", memoryResult);
                 break;
 
+            /* DEC - Decrement - Direct */
+            case 0x0A:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::decrement, memoryResult);
+                setShortDesc("DECM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
@@ -149,6 +157,14 @@ public class CPU
                 setShortDesc("ROLM, IND [%04X]", memoryResult);
                 break;
 
+            /* DEC - Decrement - Indexed */
+            case 0x6A:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::decrement, memoryResult);
+                setShortDesc("DECM, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -203,6 +219,14 @@ public class CPU
                 operationTicks = 7;
                 executeByteFunctionM(this::rotateLeft, memoryResult);
                 setShortDesc("ROLM, EXT [%04X]", memoryResult);
+                break;
+
+            /* DEC - Decrement - Extended */
+            case 0x7A:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::decrement, memoryResult);
+                setShortDesc("DECM, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -337,6 +361,21 @@ public class CPU
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C | Registers.CC_V));
         regs.cc.or(value.isMasked(0x80) ? Registers.CC_C : 0);
         regs.cc.or(value.isMasked(0xC0) ? Registers.CC_V : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        return result;
+    }
+
+    /**
+     * Decrements the byte value by one.
+     *
+     * @param value the byte value to decrement
+     * @return the decremented byte value
+     */
+    public UnsignedByte decrement(UnsignedByte value) {
+        UnsignedByte result = regs.binaryAdd(value, new UnsignedByte(0xFF), false, false, false);
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
+        regs.cc.or(value.isZero() ? Registers.CC_V : 0);
         regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
         regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
         return result;

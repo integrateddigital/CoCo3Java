@@ -1,11 +1,8 @@
 /*
- * Copyright (C) 2013-2017 Craig Thomas
+ * Copyright (C) 2017 Craig Thomas
  * This project uses an MIT style license - see LICENSE for details.
  */
 package ca.craigthomas.yacoco3e.components;
-
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 import static org.junit.Assert.*;
 
@@ -13,29 +10,18 @@ import ca.craigthomas.yacoco3e.datatypes.Registers;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.theories.suppliers.TestedOn;
 
 public class CPUTest
 {
     private CPU cpu;
-    private CPU cpuSpy;
-
     private Memory memory;
-    private Memory memorySpy;
-
     private Registers registers;
-    private Registers registersSpy;
 
     @Before
     public void setUp() {
         memory = new Memory();
-        memorySpy = spy(memory);
-
         registers = new Registers();
-        registersSpy = spy(registers);
-
-        cpu = new CPU(registersSpy, memorySpy);
-        cpuSpy = spy(cpu);
+        cpu = new CPU(registers, memory);
     }
 
     @Test
@@ -247,5 +233,30 @@ public class CPUTest
         assertTrue(registers.ccNegativeSet());
     }
 
+    @Test
+    public void testDecrementOneCorrect() {
+        UnsignedByte result = cpu.decrement(new UnsignedByte(0x1));
+        assertEquals(0x0, result.getShort());
+        assertFalse(registers.ccOverflowSet());
+        assertTrue(registers.ccZeroSet());
+        assertFalse(registers.ccNegativeSet());
+    }
 
+    @Test
+    public void testDecrementZeroCorrect() {
+        UnsignedByte result = cpu.decrement(new UnsignedByte(0x0));
+        assertEquals(0xFF, result.getShort());
+        assertTrue(registers.ccOverflowSet());
+        assertFalse(registers.ccZeroSet());
+        assertTrue(registers.ccNegativeSet());
+    }
+
+    @Test
+    public void testDecrementHighValueCorrect() {
+        UnsignedByte result = cpu.decrement(new UnsignedByte(0xFF));
+        assertEquals(0xFE, result.getShort());
+        assertFalse(registers.ccOverflowSet());
+        assertFalse(registers.ccZeroSet());
+        assertTrue(registers.ccNegativeSet());
+    }
 }

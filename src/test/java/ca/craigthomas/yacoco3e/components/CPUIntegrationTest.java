@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017 Craig Thomas
+ * Copyright (C) 2017 Craig Thomas
  * This project uses an MIT style license - see LICENSE for details.
  */
 package ca.craigthomas.yacoco3e.components;
@@ -180,5 +180,26 @@ public class CPUIntegrationTest
         cpuSpy.executeInstruction(0x79);
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).rotateLeft(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testDecrementDirectCalled() {
+        cpuSpy.executeInstruction(0x0A);
+        verify(memorySpy).getDirect(registersSpy);
+        verify(cpuSpy).decrement(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testDecrementIndexedCalled() {
+        cpuSpy.executeInstruction(0x6A);
+        verify(memorySpy).getIndexed(registersSpy);
+        verify(cpuSpy).decrement(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testDecrementExtendedCalled() {
+        cpuSpy.executeInstruction(0x7A);
+        verify(memorySpy).getExtended(registersSpy);
+        verify(cpuSpy).decrement(new UnsignedByte(0));
     }
 }
