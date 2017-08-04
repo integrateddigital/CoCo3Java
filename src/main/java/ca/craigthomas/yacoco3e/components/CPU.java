@@ -117,6 +117,14 @@ public class CPU
                 setShortDesc("TSTM, DIR [%04X]", memoryResult);
                 break;
 
+            /* JMP - Jump - Direct */
+            case 0x0E:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 3;
+                jump(memoryResult.getResult());
+                setShortDesc("JMP, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
@@ -197,6 +205,14 @@ public class CPU
                 setShortDesc("TSTM, IND [%04X]", memoryResult);
                 break;
 
+            /* JMP - Jump - Indexed */
+            case 0x6E:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 1 + memoryResult.getBytesConsumed();
+                jump(memoryResult.getResult());
+                setShortDesc("JMP, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -275,6 +291,14 @@ public class CPU
                 operationTicks = 7;
                 executeByteFunctionM(this::test, memoryResult);
                 setShortDesc("TSTM, EXT [%04X]", memoryResult);
+                break;
+
+            /* JMP - Jump - Extended */
+            case 0x7E:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 4;
+                jump(memoryResult.getResult());
+                setShortDesc("JMP, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -455,5 +479,14 @@ public class CPU
         regs.cc.or(value.isZero() ? Registers.CC_Z : 0);
         regs.cc.or(value.isNegative() ? Registers.CC_N : 0);
         return value;
+    }
+
+    /**
+     * Jumps to the specified address.
+     *
+     * @param address the address to jump to
+     */
+    public void jump(UnsignedWord address) {
+        regs.setPC(address);
     }
 }

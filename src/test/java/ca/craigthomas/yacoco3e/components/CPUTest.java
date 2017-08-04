@@ -8,6 +8,7 @@ import static org.junit.Assert.*;
 
 import ca.craigthomas.yacoco3e.datatypes.Registers;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
+import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -290,5 +291,12 @@ public class CPUTest
         cpu.test(new UnsignedByte(0x81));
         assertFalse(registers.ccZeroSet());
         assertTrue(registers.ccNegativeSet());
+    }
+
+    @Test
+    public void testJumpUpdatesPCCorrect() {
+        UnsignedWord address = new UnsignedWord(0xABCD);
+        cpu.jump(address);
+        assertEquals(address, registers.getPC());
     }
 }

@@ -6,6 +6,7 @@ package ca.craigthomas.yacoco3e.components;
 
 import ca.craigthomas.yacoco3e.datatypes.Registers;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
+import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -243,5 +244,26 @@ public class CPUIntegrationTest
         cpuSpy.executeInstruction(0x7D);
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).test(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testJumpDirectCalled() {
+        cpuSpy.executeInstruction(0x0E);
+        verify(memorySpy).getDirect(registersSpy);
+        verify(cpuSpy).jump(new UnsignedWord(0));
+    }
+
+    @Test
+    public void testJumpIndexedCalled() {
+        cpuSpy.executeInstruction(0x6E);
+        verify(memorySpy).getIndexed(registersSpy);
+        verify(cpuSpy).jump(new UnsignedWord(0x1));
+    }
+
+    @Test
+    public void testJumpExtendedCalled() {
+        cpuSpy.executeInstruction(0x7E);
+        verify(memorySpy).getExtended(registersSpy);
+        verify(cpuSpy).jump(new UnsignedWord(0));
     }
 }
