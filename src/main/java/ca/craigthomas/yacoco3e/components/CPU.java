@@ -101,6 +101,14 @@ public class CPU
                 setShortDesc("DECM, DIR [%04X]", memoryResult);
                 break;
 
+            /* INC - Increment - Direct */
+            case 0x0C:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::increment, memoryResult);
+                setShortDesc("INCM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
@@ -165,6 +173,14 @@ public class CPU
                 setShortDesc("DECM, IND [%04X]", memoryResult);
                 break;
 
+            /* INC - Increment - Indexed */
+            case 0x6C:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::increment, memoryResult);
+                setShortDesc("INCM, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -227,6 +243,14 @@ public class CPU
                 operationTicks = 7;
                 executeByteFunctionM(this::decrement, memoryResult);
                 setShortDesc("DECM, EXT [%04X]", memoryResult);
+                break;
+
+            /* INC - Increment - Extended */
+            case 0x7C:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::increment, memoryResult);
+                setShortDesc("INCM, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -376,6 +400,21 @@ public class CPU
         UnsignedByte result = regs.binaryAdd(value, new UnsignedByte(0xFF), false, false, false);
         regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
         regs.cc.or(value.isZero() ? Registers.CC_V : 0);
+        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        return result;
+    }
+
+    /**
+     * Increments the byte value by one.
+     *
+     * @param value the byte value to increment
+     * @return the incremented byte value
+     */
+    public UnsignedByte increment(UnsignedByte value) {
+        UnsignedByte result = regs.binaryAdd(value, new UnsignedByte(0x1), false, false, false);
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
+        regs.cc.or(value.isMasked(0x7F) ? Registers.CC_V : 0);
         regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
         regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
         return result;

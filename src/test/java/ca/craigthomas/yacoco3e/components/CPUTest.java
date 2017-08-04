@@ -259,4 +259,22 @@ public class CPUTest
         assertFalse(registers.ccZeroSet());
         assertTrue(registers.ccNegativeSet());
     }
+
+    @Test
+    public void testIncrementOneCorrect() {
+        UnsignedByte result = cpu.increment(new UnsignedByte(0x1));
+        assertEquals(0x2, result.getShort());
+        assertFalse(registers.ccOverflowSet());
+        assertFalse(registers.ccZeroSet());
+        assertFalse(registers.ccNegativeSet());
+    }
+
+    @Test
+    public void testIncrementSetsOverflow() {
+        UnsignedByte result = cpu.increment(new UnsignedByte(0x7F));
+        assertEquals(0x80, result.getShort());
+        assertFalse(registers.ccZeroSet());
+        assertTrue(registers.ccOverflowSet());
+        assertTrue(registers.ccNegativeSet());
+    }
 }
