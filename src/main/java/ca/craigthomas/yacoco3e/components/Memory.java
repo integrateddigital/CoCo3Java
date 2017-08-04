@@ -289,4 +289,16 @@ public class Memory
     public void writeByte(UnsignedWord address, UnsignedByte value) {
         memory[address.getInt()] = value.getShort();
     }
+
+    /**
+     * Reads the next program counter byte. Does not increment the program
+     * counter.
+     *
+     * @param regs the current state of the registers
+     * @return the next byte read from the program counter address
+     */
+    public UnsignedByte nextPCByte(Registers regs) {
+        UnsignedWord address = regs.getPC().next();
+        return readByte(address);
+    }
 }

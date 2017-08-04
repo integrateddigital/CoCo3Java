@@ -4,6 +4,8 @@
  */
 package ca.craigthomas.yacoco3e.components;
 
+import static org.junit.Assert.*;
+
 import ca.craigthomas.yacoco3e.datatypes.Registers;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
@@ -24,6 +26,8 @@ public class CPUIntegrationTest
     private Registers registers;
     private Registers registersSpy;
 
+    private UnsignedByte expectedDirectByte;
+
     @Before
     public void setUp() {
         memory = new Memory();
@@ -34,257 +38,305 @@ public class CPUIntegrationTest
 
         cpu = new CPU(registersSpy, memorySpy);
         cpuSpy = spy(cpu);
+
+        registersSpy.setDP(new UnsignedByte(0xA0));
+        expectedDirectByte = new UnsignedByte(0xBA);
+        memorySpy.writeByte(new UnsignedWord(0xA000), new UnsignedByte(0xBA));
     }
 
     @Test
     public void testNegateDirectCalled() {
-        cpuSpy.executeInstruction(0x00);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).negate(new UnsignedByte(0));
+        verify(cpuSpy).negate(expectedDirectByte);
     }
 
     @Test
     public void testNegateIndexedCalled() {
-        cpuSpy.executeInstruction(0x60);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x60));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).negate(new UnsignedByte(0));
     }
 
     @Test
     public void testNegateExtendedCalled() {
-        cpuSpy.executeInstruction(0x70);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x70));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).negate(new UnsignedByte(0));
     }
 
     @Test
     public void testComplementDirectCalled() {
-        cpuSpy.executeInstruction(0x03);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x03));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).compliment(new UnsignedByte(0));
+        verify(cpuSpy).compliment(expectedDirectByte);
     }
 
     @Test
     public void testComplementIndexedCalled() {
-        cpuSpy.executeInstruction(0x63);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x63));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).compliment(new UnsignedByte(0));
     }
 
     @Test
     public void testComplementExtendedCalled() {
-        cpuSpy.executeInstruction(0x73);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x73));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).compliment(new UnsignedByte(0));
     }
 
     @Test
     public void testLogicalShiftRightDirectCalled() {
-        cpuSpy.executeInstruction(0x04);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x04));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
+        verify(cpuSpy).logicalShiftRight(expectedDirectByte);
     }
 
     @Test
     public void testLogicalShiftRightIndexedCalled() {
-        cpuSpy.executeInstruction(0x64);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x64));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
     }
 
     @Test
     public void testLogicalShiftRightExtendedCalled() {
-        cpuSpy.executeInstruction(0x74);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x74));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
     }
 
     @Test
     public void testRotateRightDirectCalled() {
-        cpuSpy.executeInstruction(0x06);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x06));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).rotateRight(new UnsignedByte(0));
+        verify(cpuSpy).rotateRight(expectedDirectByte);
     }
 
     @Test
     public void testRotateRightIndexedCalled() {
-        cpuSpy.executeInstruction(0x66);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x66));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).rotateRight(new UnsignedByte(0));
     }
 
     @Test
     public void testRotateRightExtendedCalled() {
-        cpuSpy.executeInstruction(0x76);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x76));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).rotateRight(new UnsignedByte(0));
     }
 
     @Test
     public void testArithmeticShiftRightDirectCalled() {
-        cpuSpy.executeInstruction(0x07);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x07));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
+        verify(cpuSpy).arithmeticShiftRight(expectedDirectByte);
     }
 
     @Test
     public void testArithmeticShiftIndexedCalled() {
-        cpuSpy.executeInstruction(0x67);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x67));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
     }
 
     @Test
     public void testArithmeticShiftRightExtendedCalled() {
-        cpuSpy.executeInstruction(0x77);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x77));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
     }
 
     @Test
     public void testArithmeticShiftLeftDirectCalled() {
-        cpuSpy.executeInstruction(0x08);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x08));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
+        verify(cpuSpy).arithmeticShiftLeft(expectedDirectByte);
     }
 
     @Test
     public void testArithmeticShiftLeftIndexedCalled() {
-        cpuSpy.executeInstruction(0x68);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x68));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
     }
 
     @Test
     public void testArithmeticShiftLeftExtendedCalled() {
-        cpuSpy.executeInstruction(0x78);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x78));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
     }
 
     @Test
     public void testRotateLeftDirectCalled() {
-        cpuSpy.executeInstruction(0x09);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x09));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).rotateLeft(new UnsignedByte(0));
+        verify(cpuSpy).rotateLeft(expectedDirectByte);
     }
 
     @Test
     public void testRotateLeftIndexedCalled() {
-        cpuSpy.executeInstruction(0x69);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x69));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).rotateLeft(new UnsignedByte(0));
     }
 
     @Test
     public void testRotateLeftExtendedCalled() {
-        cpuSpy.executeInstruction(0x79);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x79));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).rotateLeft(new UnsignedByte(0));
     }
 
     @Test
     public void testDecrementDirectCalled() {
-        cpuSpy.executeInstruction(0x0A);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0A));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).decrement(new UnsignedByte(0));
+        verify(cpuSpy).decrement(expectedDirectByte);
     }
 
     @Test
     public void testDecrementIndexedCalled() {
-        cpuSpy.executeInstruction(0x6A);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6A));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).decrement(new UnsignedByte(0));
     }
 
     @Test
     public void testDecrementExtendedCalled() {
-        cpuSpy.executeInstruction(0x7A);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7A));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).decrement(new UnsignedByte(0));
     }
 
     @Test
     public void testIncrementDirectCalled() {
-        cpuSpy.executeInstruction(0x0C);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0C));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).increment(new UnsignedByte(0));
+        verify(cpuSpy).increment(expectedDirectByte);
     }
 
     @Test
     public void testIncrementIndexedCalled() {
-        cpuSpy.executeInstruction(0x6C);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6C));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).increment(new UnsignedByte(0));
     }
 
     @Test
     public void testIncrementExtendedCalled() {
-        cpuSpy.executeInstruction(0x7C);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7C));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).increment(new UnsignedByte(0));
     }
 
     @Test
     public void testTestDirectCalled() {
-        cpuSpy.executeInstruction(0x0D);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0D));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).test(new UnsignedByte(0));
+        verify(cpuSpy).test(expectedDirectByte);
     }
 
     @Test
     public void testTestIndexedCalled() {
-        cpuSpy.executeInstruction(0x6D);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6D));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).test(new UnsignedByte(0));
     }
 
     @Test
     public void testTestExtendedCalled() {
-        cpuSpy.executeInstruction(0x7D);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7D));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).test(new UnsignedByte(0));
     }
 
     @Test
     public void testJumpDirectCalled() {
-        cpuSpy.executeInstruction(0x0E);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0E));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).jump(new UnsignedWord(0));
+        verify(cpuSpy).jump(new UnsignedWord(0xA000));
     }
 
     @Test
     public void testJumpIndexedCalled() {
-        cpuSpy.executeInstruction(0x6E);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6E));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
-        verify(cpuSpy).jump(new UnsignedWord(0x1));
+        verify(cpuSpy).jump(new UnsignedWord(0x2));
     }
 
     @Test
     public void testJumpExtendedCalled() {
-        cpuSpy.executeInstruction(0x7E);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7E));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
-        verify(cpuSpy).jump(new UnsignedWord(0));
+        verify(cpuSpy).jump(new UnsignedWord(0x7E00));
     }
 
     @Test
     public void testClearDirectCalled() {
-        cpuSpy.executeInstruction(0x0F);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0F));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getDirect(registersSpy);
-        verify(cpuSpy).clear(new UnsignedByte(0));
+        verify(cpuSpy).clear(expectedDirectByte);
     }
 
     @Test
     public void testClearIndexedCalled() {
-        cpuSpy.executeInstruction(0x6F);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6F));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getIndexed(registersSpy);
         verify(cpuSpy).clear(new UnsignedByte(0x0));
     }
 
     @Test
     public void testClearExtendedCalled() {
-        cpuSpy.executeInstruction(0x7F);
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7F));
+        cpuSpy.executeInstruction();
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).clear(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testLongBranchNeverDoesNothing() {
+        memory.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x21));
+        cpuSpy.executeInstruction();
+        assertEquals(0x1, registers.getPC().getInt());
     }
 }

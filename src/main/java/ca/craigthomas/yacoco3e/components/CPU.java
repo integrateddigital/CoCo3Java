@@ -28,12 +28,13 @@ public class CPU
      * Executes the instruction as indicated by the operand. Will return the
      * total number of ticks taken to execute the instruction.
      *
-     * @param operand the operand containing the instruction to execute
      * @return the number of ticks taken up by the instruction
      */
-    int executeInstruction(int operand) {
+    int executeInstruction() {
         int operationTicks = 0;
         MemoryResult memoryResult;
+        int operand = memory.readByte(regs.getPC()).getShort();
+        regs.setPC(regs.getPC().next());
 
         switch (operand) {
 
@@ -132,6 +133,25 @@ public class CPU
                 executeByteFunctionM(this::clear, memoryResult);
                 setShortDesc("CLRM, DIR [%04X]", memoryResult);
                 break;
+
+            /* Extended Opcodes */
+            case 0x10:
+            {
+                UnsignedByte extendedOp = memory.nextPCByte(regs);
+                regs.getPC().add(2);
+                switch(extendedOp.getShort()) {
+
+                    /* LBRN - Long Branch Never */
+                    case 0x21:
+                        memoryResult = memory.getImmediate(regs);
+                        operationTicks = 5;
+                        setShortDesc("LBRN, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBHI - Long Branch on High */
+                    
+                }
+            }
 
             /* NEG - Negate M - Indexed */
             case 0x60:
