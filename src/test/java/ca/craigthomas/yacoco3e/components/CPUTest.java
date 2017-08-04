@@ -299,4 +299,11 @@ public class CPUTest
         cpu.jump(address);
         assertEquals(address, registers.getPC());
     }
+
+    @Test
+    public void testClearWorksCorrect() {
+        UnsignedByte result = cpu.clear(new UnsignedByte(0x4));
+        assertEquals(0, result.getShort());
+        assertTrue(registers.ccZeroSet());
+    }
 }

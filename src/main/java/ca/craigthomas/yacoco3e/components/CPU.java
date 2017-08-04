@@ -125,6 +125,14 @@ public class CPU
                 setShortDesc("JMP, DIR [%04X]", memoryResult);
                 break;
 
+            /* CLR - Clear - Direct */
+            case 0x0F:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::clear, memoryResult);
+                setShortDesc("CLRM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
@@ -213,6 +221,14 @@ public class CPU
                 setShortDesc("JMP, IND [%04X]", memoryResult);
                 break;
 
+            /* CLR - Clear - Indexed */
+            case 0x6F:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::clear, memoryResult);
+                setShortDesc("CLRM, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -299,6 +315,14 @@ public class CPU
                 operationTicks = 4;
                 jump(memoryResult.getResult());
                 setShortDesc("JMP, EXT [%04X]", memoryResult);
+                break;
+
+            /* CLR - Clear - Extended */
+            case 0x7F:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::clear, memoryResult);
+                setShortDesc("CLRM, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -488,5 +512,17 @@ public class CPU
      */
     public void jump(UnsignedWord address) {
         regs.setPC(address);
+    }
+
+    /**
+     * Clears the specified byte.
+     *
+     * @param value the value to clear
+     * @return the cleared byte
+     */
+    public UnsignedByte clear(UnsignedByte value) {
+        regs.cc.and(~(Registers.CC_N | Registers.CC_C | Registers.CC_V));
+        regs.cc.or(Registers.CC_Z);
+        return new UnsignedByte(0);
     }
 }

@@ -266,4 +266,25 @@ public class CPUIntegrationTest
         verify(memorySpy).getExtended(registersSpy);
         verify(cpuSpy).jump(new UnsignedWord(0));
     }
+
+    @Test
+    public void testClearDirectCalled() {
+        cpuSpy.executeInstruction(0x0F);
+        verify(memorySpy).getDirect(registersSpy);
+        verify(cpuSpy).clear(new UnsignedByte(0));
+    }
+
+    @Test
+    public void testClearIndexedCalled() {
+        cpuSpy.executeInstruction(0x6F);
+        verify(memorySpy).getIndexed(registersSpy);
+        verify(cpuSpy).clear(new UnsignedByte(0x0));
+    }
+
+    @Test
+    public void testClearExtendedCalled() {
+        cpuSpy.executeInstruction(0x7F);
+        verify(memorySpy).getExtended(registersSpy);
+        verify(cpuSpy).clear(new UnsignedByte(0));
+    }
 }
