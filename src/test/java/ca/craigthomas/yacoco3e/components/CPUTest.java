@@ -277,4 +277,18 @@ public class CPUTest
         assertTrue(registers.ccOverflowSet());
         assertTrue(registers.ccNegativeSet());
     }
+
+    @Test
+    public void testTestZeroCorrect() {
+        cpu.test(new UnsignedByte(0x0));
+        assertTrue(registers.ccZeroSet());
+        assertFalse(registers.ccNegativeSet());
+    }
+
+    @Test
+    public void testTestNegativeCorrect() {
+        cpu.test(new UnsignedByte(0x81));
+        assertFalse(registers.ccZeroSet());
+        assertTrue(registers.ccNegativeSet());
+    }
 }

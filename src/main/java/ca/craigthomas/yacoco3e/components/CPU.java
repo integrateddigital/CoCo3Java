@@ -109,6 +109,14 @@ public class CPU
                 setShortDesc("INCM, DIR [%04X]", memoryResult);
                 break;
 
+            /* TST - Test - Direct */
+            case 0x0D:
+                memoryResult = memory.getDirect(regs);
+                operationTicks = 6;
+                executeByteFunctionM(this::test, memoryResult);
+                setShortDesc("TSTM, DIR [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Indexed */
             case 0x60:
                 memoryResult = memory.getIndexed(regs);
@@ -181,6 +189,14 @@ public class CPU
                 setShortDesc("INCM, IND [%04X]", memoryResult);
                 break;
 
+            /* TST - Test - Indexed */
+            case 0x6D:
+                memoryResult = memory.getIndexed(regs);
+                operationTicks = 4 + memoryResult.getBytesConsumed();
+                executeByteFunctionM(this::test, memoryResult);
+                setShortDesc("TSTM, IND [%04X]", memoryResult);
+                break;
+
             /* NEG - Negate M - Extended */
             case 0x70:
                 memoryResult = memory.getExtended(regs);
@@ -251,6 +267,14 @@ public class CPU
                 operationTicks = 7;
                 executeByteFunctionM(this::increment, memoryResult);
                 setShortDesc("INCM, EXT [%04X]", memoryResult);
+                break;
+
+            /* TST - Test - Extended */
+            case 0x7D:
+                memoryResult = memory.getExtended(regs);
+                operationTicks = 7;
+                executeByteFunctionM(this::test, memoryResult);
+                setShortDesc("TSTM, EXT [%04X]", memoryResult);
                 break;
         }
 
@@ -418,5 +442,18 @@ public class CPU
         regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
         regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
         return result;
+    }
+
+    /**
+     * Tests the byte for zero condition or negative condition.
+     *
+     * @param value the byte value to test
+     * @return the original byte value
+     */
+    public UnsignedByte test(UnsignedByte value) {
+        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
+        regs.cc.or(value.isZero() ? Registers.CC_Z : 0);
+        regs.cc.or(value.isNegative() ? Registers.CC_N : 0);
+        return value;
     }
 }
