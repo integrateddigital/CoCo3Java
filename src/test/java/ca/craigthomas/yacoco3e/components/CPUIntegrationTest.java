@@ -12,6 +12,7 @@ import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -334,9 +335,403 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchNeverDoesNothing() {
-        memory.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x21));
         cpuSpy.executeInstruction();
-        assertEquals(0x1, registers.getPC().getInt());
+        assertEquals(0x3, registers.getPC().getInt());
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0x0000));
+    }
+
+    @Test
+    public void testLongBranchOnHighCalledCorrect() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x22));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnHighNotCalledWhenCarrySet() {
+        registersSpy.setCCCarry();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x22));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnHighNotCalledWhenZeroSet() {
+        registersSpy.setCCZero();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x22));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLowerCalledCorrect() {
+        registersSpy.setCCZero();
+        registersSpy.setCCCarry();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x23));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnHighNotCalledWhenCarryAndZeroNotSet() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x23));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnCarryClearCalledCorrect() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x24));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnCarryClearNotCalledWhenCarrySet() {
+        registersSpy.setCCCarry();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x24));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnCarrySetCalledCorrect() {
+        registersSpy.setCCCarry();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x25));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnCarrySetNotCalledWhenCarryNotSet() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x25));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnNotEqualCalledCorrect() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x26));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnNotEqualNotCalledWhenZeroSet() {
+        registersSpy.setCCZero();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x26));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnEqualCalledCorrect() {
+        registersSpy.setCCZero();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x27));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnEqualNotCalledWhenZeroNotSet() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x27));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnOverflowClearCalledCorrect() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x28));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnOverflowClearNotCalledWhenOverflowSet() {
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x28));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnOverflowSetCalledCorrect() {
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x29));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnOverflowSetNotCalledWhenOverflowNotSet() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x29));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnPlusCalledCorrect() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2A));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnPlusNotCalledWhenNegativeSet() {
+        registersSpy.setCCNegative();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2A));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnMinusCalledCorrect() {
+        registersSpy.setCCNegative();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2B));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnMinusNotCalledWhenNegativeNotSet() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2B));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLTCalledCorrectWhenOverflowSet() {
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2D));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLTCalledCorrectWhenNegativeSet() {
+        registersSpy.setCCNegative();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2D));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+
+    @Test
+    public void testLongBranchOnLTNotCalledWhenNegativeAndOverflowNotSet() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2D));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLTNotCalledWhenNegativeAndOverflowSet() {
+        registersSpy.setCCNegative();
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2D));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnGECalledCorrectWhenOverflowSet() {
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2C));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnGECalledCorrectWhenNegativeSet() {
+        registersSpy.setCCNegative();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2C));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+
+    @Test
+    public void testLongBranchOnGENotCalledWhenNegativeAndOverflowNotSet() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2C));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnGENotCalledWhenNegativeAndOverflowSet() {
+        registersSpy.setCCNegative();
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2C));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnGTCalledCorrectly() {
+        registersSpy.setCCZero();
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2E));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnGTNotCalledIfNotZeroSet() {
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2E));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnGTNotCalledIfAllSet() {
+        registersSpy.setCCZero();
+        registersSpy.setCCOverflow();
+        registersSpy.setCCNegative();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2E));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLECalledCorrectly() {
+        registersSpy.setCCZero();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLECalledIfNotZeroAndOverflow() {
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLECalledIfNotZeroAndNegative() {
+        registersSpy.setCCNegative();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testLongBranchOnLENotCalledIfOverflowAndNegative() {
+        registersSpy.setCCNegative();
+        registersSpy.setCCOverflow();
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
+        memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
+        memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
     }
 }

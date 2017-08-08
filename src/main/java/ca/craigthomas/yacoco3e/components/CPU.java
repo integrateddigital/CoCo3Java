@@ -33,10 +33,10 @@ public class CPU
     int executeInstruction() {
         int operationTicks = 0;
         MemoryResult memoryResult;
-        int operand = memory.readByte(regs.getPC()).getShort();
-        regs.setPC(regs.getPC().next());
+        UnsignedByte operand = memory.getPCByte(regs);
+        regs.incrementPC();
 
-        switch (operand) {
+        switch (operand.getShort()) {
 
             /* NEG - Negate M - Direct */
             case 0x00:
@@ -137,8 +137,9 @@ public class CPU
             /* Extended Opcodes */
             case 0x10:
             {
-                UnsignedByte extendedOp = memory.nextPCByte(regs);
-                regs.getPC().add(2);
+                UnsignedByte extendedOp = memory.getPCByte(regs);
+                regs.incrementPC();
+
                 switch(extendedOp.getShort()) {
 
                     /* LBRN - Long Branch Never */
@@ -148,9 +149,175 @@ public class CPU
                         setShortDesc("LBRN, REL [%04X]", memoryResult);
                         break;
 
-                    /* LBHI - Long Branch on High */
-                    
+                    /* LBHI - Long Branch on Higher */
+                    case 0x22:
+                        memoryResult = memory.getImmediate(regs);
+                        if (!regs.ccCarrySet() && !regs.ccZeroSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBHI, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBLS - Long Branch on Lower or Same */
+                    case 0x23:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccCarrySet() || regs.ccZeroSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBLS, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBCC - Long Branch on Carry Clear */
+                    case 0x24:
+                        memoryResult = memory.getImmediate(regs);
+                        if (!regs.ccCarrySet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBCC, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBCS - Long Branch on Carry Set */
+                    case 0x25:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccCarrySet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBCS, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBNE - Long Branch on Not Equal */
+                    case 0x26:
+                        memoryResult = memory.getImmediate(regs);
+                        if (!regs.ccZeroSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBNE, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBNE - Long Branch on Equal */
+                    case 0x27:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccZeroSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBEQ, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBVC - Long Branch on Overflow Clear */
+                    case 0x28:
+                        memoryResult = memory.getImmediate(regs);
+                        if (!regs.ccOverflowSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBVC, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBVS - Long Branch on Overflow Set */
+                    case 0x29:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccOverflowSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBVS, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBPL - Long Branch on Plus */
+                    case 0x2A:
+                        memoryResult = memory.getImmediate(regs);
+                        if (!regs.ccNegativeSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBPL, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBMI - Long Branch on Minus */
+                    case 0x2B:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccNegativeSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBMI, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBGE - Long Branch on Greater Than or Equal to Zero */
+                    case 0x2C:
+                        memoryResult = memory.getImmediate(regs);
+                        if (!regs.ccNegativeSet() ^ !regs.ccOverflowSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBGE, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBLT - Long Branch on Less Than or Equal to Zero */
+                    case 0x2D:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccNegativeSet() ^ regs.ccOverflowSet()) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBLT, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBGT - Long Branch on Greater Than Zero */
+                    case 0x2E:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccZeroSet() && (regs.ccNegativeSet() ^ regs.ccOverflowSet())) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBGT, REL [%04X]", memoryResult);
+                        break;
+
+                    /* LBLE - Long Branch on Less Than Zero */
+                    case 0x2F:
+                        memoryResult = memory.getImmediate(regs);
+                        if (regs.ccZeroSet() || (regs.ccNegativeSet() ^ regs.ccOverflowSet())) {
+                            branchLong(memoryResult.getResult());
+                            operationTicks = 6;
+                        } else {
+                            operationTicks = 5;
+                        }
+                        setShortDesc("LBLE, REL [%04X]", memoryResult);
+                        break;
                 }
+                break;
             }
 
             /* NEG - Negate M - Indexed */
@@ -544,5 +711,16 @@ public class CPU
         regs.cc.and(~(Registers.CC_N | Registers.CC_C | Registers.CC_V));
         regs.cc.or(Registers.CC_Z);
         return new UnsignedByte(0);
+    }
+
+    /**
+     * Increments (or decrements) the program counter by the specified amount.
+     * Will interpret the UnsignedWord offset as a negative value if the high
+     * bit is set.
+     *
+     * @param offset the amount to offset the program counter
+     */
+    public void branchLong(UnsignedWord offset) {
+        regs.getPC().add(offset.isNegative() ? offset.getSignedInt() : offset.getInt());
     }
 }

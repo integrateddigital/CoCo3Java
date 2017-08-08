@@ -290,6 +290,9 @@ public class Memory
         memory[address.getInt()] = value.getShort();
     }
 
+    public UnsignedByte getPCByte(Registers regs) {
+        return readByte(regs.getPC());
+    }
     /**
      * Reads the next program counter byte. Does not increment the program
      * counter.

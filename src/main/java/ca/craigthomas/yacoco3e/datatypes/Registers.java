@@ -258,4 +258,8 @@ public class Registers
     public void setCCFastInterrupt() {
         cc.or(CC_F);
     }
+
+    public void incrementPC() {
+        pc.add(1);
+    }
 }
