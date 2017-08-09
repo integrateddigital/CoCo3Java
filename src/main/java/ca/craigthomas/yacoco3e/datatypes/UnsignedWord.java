@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017 Craig Thomas
+ * Copyright (C) 2017 Craig Thomas
  * This project uses an MIT style license - see LICENSE for details.
  */
 package ca.craigthomas.yacoco3e.datatypes;
@@ -83,6 +83,16 @@ public class UnsignedWord
     public void add(int value) {
         this.value += value;
         and(0xFFFF);
+    }
+
+    /**
+     * Returns a new UnsignedWord that is the twos compliment
+     * value of the current Word.
+     *
+     * @return a new UnsignedWord with the twos compliment value
+     */
+    public UnsignedWord twosCompliment() {
+        return new UnsignedWord((~value + 1));
     }
 
     /**
@@ -186,6 +196,6 @@ public class UnsignedWord
 
     @Override
     public String toString() {
-        return String.format("%04X", value);
+        return String.format("0x%04X", value);
     }
 }

@@ -111,18 +111,49 @@ public class RegisterSet
         this.s = s;
     }
 
+    /**
+     * Returns the value of the A register.
+     *
+     * @return the value of the A register
+     */
     public UnsignedByte getA() {
         return a;
     }
 
+    /**
+     * Returns the value of the B register.
+     *
+     * @return the value of the B register
+     */
     public UnsignedByte getB() {
         return b;
     }
 
+    /**
+     * Returns the combined value of the A and B registers as a 16-bit word.
+     *
+     * @return the value of the D register
+     */
     public UnsignedWord getD() {
         return new UnsignedWord(a, b);
     }
 
+    /**
+     * Sets the value of the D register, which is equivalent to
+     * the A and B registers combined.
+     *
+     * @param d the new value for the D register
+     */
+    public void setD(UnsignedWord d) {
+        a = d.getHigh();
+        b = d.getLow();
+    }
+
+    /**
+     * Gets the value of the condition code register.
+     *
+     * @return the value of the condition code register
+     */
     public UnsignedByte getCC() {
         return cc;
     }

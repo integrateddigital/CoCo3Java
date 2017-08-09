@@ -329,7 +329,69 @@ public class CPU
                         setShortDesc("SWI3", null);
                         break;
 
+                    /* CMPD - Compare D - Immediate */
+                    case 0x83:
+                        memoryResult = memory.getImmediate(regs);
+                        compareWord(regs.getD(), memoryResult.getResult());
+                        operationTicks = 5;
+                        setShortDesc("CMPD, IMM", null);
+                        break;
 
+                    /* CMPY - Compare Y - Immediate */
+                    case 0x8C:
+                        memoryResult = memory.getImmediate(regs);
+                        compareWord(regs.getY(), memoryResult.getResult());
+                        operationTicks = 5;
+                        setShortDesc("CMPY, IMM", null);
+                        break;
+
+                    /* CMPD - Compare D - Direct */
+                    case 0x93:
+                        memoryResult = memory.getDirect(regs);
+                        compareWord(regs.getD(), memory.readWord(memoryResult.getResult()));
+                        operationTicks = 7;
+                        setShortDesc("CMPD, DIR", null);
+                        break;
+
+                    /* CMPY - Compare Y - Direct */
+                    case 0x9C:
+                        memoryResult = memory.getDirect(regs);
+                        compareWord(regs.getY(), memory.readWord(memoryResult.getResult()));
+                        operationTicks = 7;
+                        setShortDesc("CMPY, DIR", null);
+                        break;
+
+                    /* CMPD - Compare D - Direct */
+                    case 0xA3:
+                        memoryResult = memory.getIndexed(regs);
+                        compareWord(regs.getD(), memory.readWord(memoryResult.getResult()));
+                        operationTicks = 5 + memoryResult.getBytesConsumed();
+                        setShortDesc("CMPD, IND", null);
+                        break;
+
+                    /* CMPY - Compare Y - Direct */
+                    case 0xAC:
+                        memoryResult = memory.getIndexed(regs);
+                        compareWord(regs.getY(), memory.readWord(memoryResult.getResult()));
+                        operationTicks = 5 + memoryResult.getBytesConsumed();
+                        setShortDesc("CMPY, IND", null);
+                        break;
+
+                    /* CMPD - Compare D - Extended */
+                    case 0xB3:
+                        memoryResult = memory.getExtended(regs);
+                        compareWord(regs.getD(), memory.readWord(memoryResult.getResult()));
+                        operationTicks = 8;
+                        setShortDesc("CMPD, EXT", null);
+                        break;
+
+                    /* CMPY - Compare Y - Extended */
+                    case 0xBC:
+                        memoryResult = memory.getExtended(regs);
+                        compareWord(regs.getY(), memory.readWord(memoryResult.getResult()));
+                        operationTicks = 8;
+                        setShortDesc("CMPY, EXT", null);
+                        break;
                 }
                 break;
             }
@@ -543,6 +605,13 @@ public class CPU
         UnsignedByte tempByte = memory.readByte(address);
         tempByte = function.apply(tempByte);
         memory.writeByte(address, tempByte);
+    }
+
+    public void executeWordFunctionM(Function<UnsignedWord, UnsignedWord> function,
+                                     MemoryResult memoryResult) {
+        UnsignedWord address = memoryResult.getResult();
+        UnsignedWord tempWord = memory.readWord(address);
+        tempWord = function.apply(tempWord);
     }
 
     /**
@@ -759,5 +828,19 @@ public class CPU
         memory.pushStack(regs, Register.S, regs.getA());
         memory.pushStack(regs, Register.S, regs.getCC());
         regs.setPC(memory.readWord(offset));
+    }
+
+    /**
+     * Compares the two words and sets the appropriate register sets.
+     *
+     * @param word1 the first word to compare
+     * @param word2 the second word to compare
+     */
+    public UnsignedWord compareWord(UnsignedWord word1, UnsignedWord word2) {
+        UnsignedWord result = regs.binaryAdd(word1, word2.twosCompliment(), false, true, true);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_V | RegisterSet.CC_C));
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
+        return result;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017 Craig Thomas
+ * Copyright (C) 2017 Craig Thomas
  * This project uses an MIT style license - see LICENSE for details.
  */
 package ca.craigthomas.yacoco3e.datatypes;
@@ -51,7 +51,7 @@ public class UnsignedWordTest
     @Test
     public void testToString() {
         UnsignedWord result = new UnsignedWord(0xABCD);
-        assertEquals("ABCD", result.toString());
+        assertEquals("0xABCD", result.toString());
     }
 
     @Test

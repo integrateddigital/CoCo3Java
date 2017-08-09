@@ -765,4 +765,82 @@ public class CPUIntegrationTest
         assertEquals(new UnsignedByte(0xEF), memorySpy.readByte(new UnsignedWord(0x9FF5)));
         assertEquals(new UnsignedByte(0x8A), memorySpy.readByte(new UnsignedWord(0x9FF4)));
     }
+
+    @Test
+    public void testCompareDImmediateCalled() {
+        registerSetSpy.setD(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x83));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(0x00));
+    }
+
+    @Test
+    public void testCompareDDirectCalled() {
+        registerSetSpy.setD(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x93));
+        cpuSpy.executeInstruction();
+        verify(memorySpy).getDirect(registerSetSpy);
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(expectedDirectByte, new UnsignedByte(0)));
+    }
+
+    @Test
+    public void testCompareDIndexedCalled() {
+        registerSetSpy.setD(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0xA3));
+        cpuSpy.executeInstruction();
+        verify(memorySpy).getIndexed(registerSetSpy);
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(0x00));
+    }
+
+    @Test
+    public void testCompareDExtendedCalled() {
+        registerSetSpy.setD(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0xB3));
+        cpuSpy.executeInstruction();
+        verify(memorySpy).getExtended(registerSetSpy);
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(0x00));
+    }
+
+    @Test
+    public void testCompareYImmediateCalled() {
+        registerSetSpy.setY(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x8C));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(0x00));
+    }
+
+    @Test
+    public void testCompareYDirectCalled() {
+        registerSetSpy.setY(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x9C));
+        cpuSpy.executeInstruction();
+        verify(memorySpy).getDirect(registerSetSpy);
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(expectedDirectByte, new UnsignedByte(0)));
+    }
+
+    @Test
+    public void testCompareYIndexedCalled() {
+        registerSetSpy.setY(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0xAC));
+        cpuSpy.executeInstruction();
+        verify(memorySpy).getIndexed(registerSetSpy);
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(0x00));
+    }
+
+    @Test
+    public void testCompareYExtendedCalled() {
+        registerSetSpy.setY(new UnsignedWord(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0xBC));
+        cpuSpy.executeInstruction();
+        verify(memorySpy).getExtended(registerSetSpy);
+        verify(cpuSpy).compareWord(new UnsignedWord(0x10), new UnsignedWord(0x00));
+    }
 }
