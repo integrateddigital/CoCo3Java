@@ -4,10 +4,7 @@
  */
 package ca.craigthomas.yacoco3e.components;
 
-import ca.craigthomas.yacoco3e.datatypes.MemoryResult;
-import ca.craigthomas.yacoco3e.datatypes.Registers;
-import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
-import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
+import ca.craigthomas.yacoco3e.datatypes.*;
 
 /**
  * The Memory class controls access to and from memory locations in the memory
@@ -37,13 +34,13 @@ public class Memory
 
     /**
      * Given the current registers, will return an UnsignedWord from
-     * the memory location of the direct pointer as the high byte,
-     * and the low byte pointed to by the PC.
+     * the memory location of the direct pointer as the setHigh byte,
+     * and the setLow byte pointed to by the PC.
      *
-     * @param regs the Registers containing the current CPU state
+     * @param regs the RegisterSet containing the current CPU state
      * @return a MemoryResult with the data from the DP:PC location
      */
-    public MemoryResult getDirect(Registers regs) {
+    public MemoryResult getDirect(RegisterSet regs) {
         return new MemoryResult(
                 1,
                 new UnsignedWord(regs.getDP(), readByte(regs.getPC()))
@@ -62,14 +59,14 @@ public class Memory
      * @return the value pointed to by the post-byte (or indexed location)
      * @throws IllegalIndexedPostbyteException
      */
-    public MemoryResult getIndexed(Registers regs) {
+    public MemoryResult getIndexed(RegisterSet regs) {
         UnsignedWord address = regs.getPC().next();
         UnsignedByte postByte = readByte(address).copy();
         UnsignedWord register = new UnsignedWord(0);
         UnsignedWord result;
         UnsignedByte tempByte;
         UnsignedWord tempWord;
-        int registerFlag = Registers.REG_UNKNOWN;
+        Register registerFlag = Register.UNKNOWN;
         int bytesConsumed = 1;
         int offset = 0;
         int addToReg = 0;
@@ -92,22 +89,22 @@ public class Memory
         switch (postByte.getShort() & 0x60) {
             case 0x00:
                 register = regs.getX();
-                registerFlag = Registers.REG_X;
+                registerFlag = Register.X;
                 break;
 
             case 0x20:
                 register = regs.getY();
-                registerFlag = Registers.REG_Y;
+                registerFlag = Register.Y;
                 break;
 
             case 0x40:
                 register = regs.getU();
-                registerFlag = Registers.REG_U;
+                registerFlag = Register.U;
                 break;
 
             case 0x60:
                 register = regs.getS();
-                registerFlag = Registers.REG_S;
+                registerFlag = Register.S;
                 break;
 
             default:
@@ -208,19 +205,19 @@ public class Memory
 
         /* Before we calculate the address, post increment the registers */
         switch (registerFlag) {
-            case Registers.REG_X:
+            case X:
                 regs.getX().add(addToReg);
                 break;
 
-            case Registers.REG_Y:
+            case Y:
                 regs.getY().add(addToReg);
                 break;
 
-            case Registers.REG_U:
+            case U:
                 regs.getU().add(addToReg);
                 break;
 
-            case Registers.REG_S:
+            case S:
                 regs.getS().add(addToReg);
                 break;
         }
@@ -232,10 +229,10 @@ public class Memory
      * Given the current registers, will return the value that is
      * pointed to by the program counter.
      *
-     * @param regs the Registers containing the current CPU state
+     * @param regs the RegisterSet containing the current CPU state
      * @return a MemoryResult with the data from the PC location
      */
-    public MemoryResult getImmediate(Registers regs) {
+    public MemoryResult getImmediate(RegisterSet regs) {
         return new MemoryResult(
                 2,
                 readWord(regs.getPC())
@@ -247,10 +244,10 @@ public class Memory
      * pointed to by the value that is pointed to by the program
      * counter value.
      *
-     * @param regs the Registers containing the current CPU state
+     * @param regs the RegisterSet containing the current CPU state
      * @return a MemoryResult with the data from the PC location
      */
-    public MemoryResult getExtended(Registers regs) {
+    public MemoryResult getExtended(RegisterSet regs) {
         return new MemoryResult(
                 2,
                 readWord(readWord(regs.getPC()))
@@ -275,8 +272,8 @@ public class Memory
      */
     public UnsignedWord readWord(UnsignedWord address) {
         UnsignedWord result = new UnsignedWord();
-        result.high(readByte(address));
-        result.low(readByte(address.next()));
+        result.setHigh(readByte(address));
+        result.setLow(readByte(address.next()));
         return result;
     }
 
@@ -290,7 +287,7 @@ public class Memory
         memory[address.getInt()] = value.getShort();
     }
 
-    public UnsignedByte getPCByte(Registers regs) {
+    public UnsignedByte getPCByte(RegisterSet regs) {
         return readByte(regs.getPC());
     }
     /**
@@ -300,8 +297,26 @@ public class Memory
      * @param regs the current state of the registers
      * @return the next byte read from the program counter address
      */
-    public UnsignedByte nextPCByte(Registers regs) {
+    public UnsignedByte nextPCByte(RegisterSet regs) {
         UnsignedWord address = regs.getPC().next();
         return readByte(address);
+    }
+
+    /**
+     * Pushes the specified byte onto the specified stack. Will decrement the
+     * stack pointer prior to performing the push.
+     *
+     * @param regs the state of the current registers
+     * @param register the stack to use
+     * @param value the value to push
+     */
+    public void pushStack(RegisterSet regs, Register register, UnsignedByte value) {
+        if (register == Register.S) {
+            regs.getS().add(-1);
+            writeByte(regs.getS(), value);
+        } else {
+            regs.getU().add(-1);
+            writeByte(regs.getU(), value);
+        }
     }
 }

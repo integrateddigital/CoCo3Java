@@ -6,7 +6,7 @@ package ca.craigthomas.yacoco3e.datatypes;
 
 /**
  * The UnsignedWord class holds a single 16 bit value. The value is held in
- * a low byte and a high byte, which are represented as
+ * a setLow byte and a setHigh byte, which are represented as
  */
 public class UnsignedWord
 {
@@ -19,8 +19,8 @@ public class UnsignedWord
 
     public UnsignedWord(UnsignedByte high, UnsignedByte low) {
         value = 0;
-        high(high);
-        low(low);
+        setHigh(high);
+        setLow(low);
     }
 
     public UnsignedWord() {
@@ -28,21 +28,39 @@ public class UnsignedWord
     }
 
     /**
-     * The high function sets the high byte for the word.
+     * Returns the high byte of the word.
      *
-     * @param high the high byte for the word
+     * @return the high byte of the word
      */
-    public void high(UnsignedByte high) {
+    public UnsignedByte getHigh() {
+        return new UnsignedByte((value & 0xFF00) >> 8);
+    }
+
+    /**
+     * The setHigh function sets the setHigh byte for the word.
+     *
+     * @param high the setHigh byte for the word
+     */
+    public void setHigh(UnsignedByte high) {
         value &= 0x00FF;
         value += (high.getShort() << 8);
     }
 
     /**
-     * The low function sets the low byte for the word.
+     * Returns the low byte of the word.
+     *
+     * @return the low byte of the word
+     */
+    public UnsignedByte getLow() {
+        return new UnsignedByte(value & 0xFF);
+    }
+
+    /**
+     * The setLow function sets the low byte for the word.
      *
      * @param low the low byte for the word
      */
-    public void low(UnsignedByte low) {
+    public void setLow(UnsignedByte low) {
         value &= 0xFF00;
         value += low.getShort();
     }
@@ -134,7 +152,7 @@ public class UnsignedWord
 
     /**
      * Returns the signed integer representation of the word. The integer is
-     * negative if the high byte has the 8th bit set.
+     * negative if the setHigh byte has the 8th bit set.
      *
      * @return the signed integer representation of the word
      */

@@ -6,7 +6,7 @@ package ca.craigthomas.yacoco3e.components;
 
 import static org.junit.Assert.*;
 
-import ca.craigthomas.yacoco3e.datatypes.Registers;
+import ca.craigthomas.yacoco3e.datatypes.RegisterSet;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
 import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
 import org.junit.Before;
@@ -24,8 +24,8 @@ public class CPUIntegrationTest
     private Memory memory;
     private Memory memorySpy;
 
-    private Registers registers;
-    private Registers registersSpy;
+    private RegisterSet registerSet;
+    private RegisterSet registerSetSpy;
 
     private UnsignedByte expectedDirectByte;
 
@@ -34,13 +34,13 @@ public class CPUIntegrationTest
         memory = new Memory();
         memorySpy = spy(memory);
 
-        registers = new Registers();
-        registersSpy = spy(registers);
+        registerSet = new RegisterSet();
+        registerSetSpy = spy(registerSet);
 
-        cpu = new CPU(registersSpy, memorySpy);
+        cpu = new CPU(registerSetSpy, memorySpy);
         cpuSpy = spy(cpu);
 
-        registersSpy.setDP(new UnsignedByte(0xA0));
+        registerSetSpy.setDP(new UnsignedByte(0xA0));
         expectedDirectByte = new UnsignedByte(0xBA);
         memorySpy.writeByte(new UnsignedWord(0xA000), new UnsignedByte(0xBA));
     }
@@ -49,7 +49,7 @@ public class CPUIntegrationTest
     public void testNegateDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).negate(expectedDirectByte);
     }
 
@@ -57,7 +57,7 @@ public class CPUIntegrationTest
     public void testNegateIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x60));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).negate(new UnsignedByte(0));
     }
 
@@ -65,7 +65,7 @@ public class CPUIntegrationTest
     public void testNegateExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x70));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).negate(new UnsignedByte(0));
     }
 
@@ -73,7 +73,7 @@ public class CPUIntegrationTest
     public void testComplementDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x03));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).compliment(expectedDirectByte);
     }
 
@@ -81,7 +81,7 @@ public class CPUIntegrationTest
     public void testComplementIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x63));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).compliment(new UnsignedByte(0));
     }
 
@@ -89,7 +89,7 @@ public class CPUIntegrationTest
     public void testComplementExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x73));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).compliment(new UnsignedByte(0));
     }
 
@@ -97,7 +97,7 @@ public class CPUIntegrationTest
     public void testLogicalShiftRightDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x04));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).logicalShiftRight(expectedDirectByte);
     }
 
@@ -105,7 +105,7 @@ public class CPUIntegrationTest
     public void testLogicalShiftRightIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x64));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
     }
 
@@ -113,7 +113,7 @@ public class CPUIntegrationTest
     public void testLogicalShiftRightExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x74));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).logicalShiftRight(new UnsignedByte(0));
     }
 
@@ -121,7 +121,7 @@ public class CPUIntegrationTest
     public void testRotateRightDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x06));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).rotateRight(expectedDirectByte);
     }
 
@@ -129,7 +129,7 @@ public class CPUIntegrationTest
     public void testRotateRightIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x66));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).rotateRight(new UnsignedByte(0));
     }
 
@@ -137,7 +137,7 @@ public class CPUIntegrationTest
     public void testRotateRightExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x76));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).rotateRight(new UnsignedByte(0));
     }
 
@@ -145,7 +145,7 @@ public class CPUIntegrationTest
     public void testArithmeticShiftRightDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x07));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).arithmeticShiftRight(expectedDirectByte);
     }
 
@@ -153,7 +153,7 @@ public class CPUIntegrationTest
     public void testArithmeticShiftIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x67));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
     }
 
@@ -161,7 +161,7 @@ public class CPUIntegrationTest
     public void testArithmeticShiftRightExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x77));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).arithmeticShiftRight(new UnsignedByte(0));
     }
 
@@ -169,7 +169,7 @@ public class CPUIntegrationTest
     public void testArithmeticShiftLeftDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x08));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).arithmeticShiftLeft(expectedDirectByte);
     }
 
@@ -177,7 +177,7 @@ public class CPUIntegrationTest
     public void testArithmeticShiftLeftIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x68));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
     }
 
@@ -185,7 +185,7 @@ public class CPUIntegrationTest
     public void testArithmeticShiftLeftExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x78));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).arithmeticShiftLeft(new UnsignedByte(0));
     }
 
@@ -193,7 +193,7 @@ public class CPUIntegrationTest
     public void testRotateLeftDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x09));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).rotateLeft(expectedDirectByte);
     }
 
@@ -201,7 +201,7 @@ public class CPUIntegrationTest
     public void testRotateLeftIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x69));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).rotateLeft(new UnsignedByte(0));
     }
 
@@ -209,7 +209,7 @@ public class CPUIntegrationTest
     public void testRotateLeftExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x79));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).rotateLeft(new UnsignedByte(0));
     }
 
@@ -217,7 +217,7 @@ public class CPUIntegrationTest
     public void testDecrementDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0A));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).decrement(expectedDirectByte);
     }
 
@@ -225,7 +225,7 @@ public class CPUIntegrationTest
     public void testDecrementIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6A));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).decrement(new UnsignedByte(0));
     }
 
@@ -233,7 +233,7 @@ public class CPUIntegrationTest
     public void testDecrementExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7A));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).decrement(new UnsignedByte(0));
     }
 
@@ -241,7 +241,7 @@ public class CPUIntegrationTest
     public void testIncrementDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0C));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).increment(expectedDirectByte);
     }
 
@@ -249,7 +249,7 @@ public class CPUIntegrationTest
     public void testIncrementIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6C));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).increment(new UnsignedByte(0));
     }
 
@@ -257,7 +257,7 @@ public class CPUIntegrationTest
     public void testIncrementExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7C));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).increment(new UnsignedByte(0));
     }
 
@@ -265,7 +265,7 @@ public class CPUIntegrationTest
     public void testTestDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0D));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).test(expectedDirectByte);
     }
 
@@ -273,7 +273,7 @@ public class CPUIntegrationTest
     public void testTestIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6D));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).test(new UnsignedByte(0));
     }
 
@@ -281,7 +281,7 @@ public class CPUIntegrationTest
     public void testTestExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7D));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).test(new UnsignedByte(0));
     }
 
@@ -289,7 +289,7 @@ public class CPUIntegrationTest
     public void testJumpDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0E));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).jump(new UnsignedWord(0xA000));
     }
 
@@ -297,7 +297,7 @@ public class CPUIntegrationTest
     public void testJumpIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6E));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).jump(new UnsignedWord(0x2));
     }
 
@@ -305,7 +305,7 @@ public class CPUIntegrationTest
     public void testJumpExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7E));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).jump(new UnsignedWord(0x7E00));
     }
 
@@ -313,7 +313,7 @@ public class CPUIntegrationTest
     public void testClearDirectCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x0F));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getDirect(registersSpy);
+        verify(memorySpy).getDirect(registerSetSpy);
         verify(cpuSpy).clear(expectedDirectByte);
     }
 
@@ -321,7 +321,7 @@ public class CPUIntegrationTest
     public void testClearIndexedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x6F));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getIndexed(registersSpy);
+        verify(memorySpy).getIndexed(registerSetSpy);
         verify(cpuSpy).clear(new UnsignedByte(0x0));
     }
 
@@ -329,7 +329,7 @@ public class CPUIntegrationTest
     public void testClearExtendedCalled() {
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x7F));
         cpuSpy.executeInstruction();
-        verify(memorySpy).getExtended(registersSpy);
+        verify(memorySpy).getExtended(registerSetSpy);
         verify(cpuSpy).clear(new UnsignedByte(0));
     }
 
@@ -338,7 +338,7 @@ public class CPUIntegrationTest
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x21));
         cpuSpy.executeInstruction();
-        assertEquals(0x3, registers.getPC().getInt());
+        assertEquals(0x3, registerSet.getPC().getInt());
         verify(cpuSpy, never()).branchLong(new UnsignedWord(0x0000));
     }
 
@@ -354,7 +354,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnHighNotCalledWhenCarrySet() {
-        registersSpy.setCCCarry();
+        registerSetSpy.setCCCarry();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x22));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -365,7 +365,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnHighNotCalledWhenZeroSet() {
-        registersSpy.setCCZero();
+        registerSetSpy.setCCZero();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x22));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -376,8 +376,8 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLowerCalledCorrect() {
-        registersSpy.setCCZero();
-        registersSpy.setCCCarry();
+        registerSetSpy.setCCZero();
+        registerSetSpy.setCCCarry();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x23));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -408,7 +408,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnCarryClearNotCalledWhenCarrySet() {
-        registersSpy.setCCCarry();
+        registerSetSpy.setCCCarry();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x24));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -419,7 +419,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnCarrySetCalledCorrect() {
-        registersSpy.setCCCarry();
+        registerSetSpy.setCCCarry();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x25));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -450,7 +450,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnNotEqualNotCalledWhenZeroSet() {
-        registersSpy.setCCZero();
+        registerSetSpy.setCCZero();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x26));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -461,7 +461,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnEqualCalledCorrect() {
-        registersSpy.setCCZero();
+        registerSetSpy.setCCZero();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x27));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -492,7 +492,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnOverflowClearNotCalledWhenOverflowSet() {
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x28));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -503,7 +503,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnOverflowSetCalledCorrect() {
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x29));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -534,7 +534,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnPlusNotCalledWhenNegativeSet() {
-        registersSpy.setCCNegative();
+        registerSetSpy.setCCNegative();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2A));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -545,7 +545,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnMinusCalledCorrect() {
-        registersSpy.setCCNegative();
+        registerSetSpy.setCCNegative();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2B));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -566,7 +566,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLTCalledCorrectWhenOverflowSet() {
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2D));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -577,7 +577,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLTCalledCorrectWhenNegativeSet() {
-        registersSpy.setCCNegative();
+        registerSetSpy.setCCNegative();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2D));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -599,8 +599,8 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLTNotCalledWhenNegativeAndOverflowSet() {
-        registersSpy.setCCNegative();
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCNegative();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2D));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -611,7 +611,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnGECalledCorrectWhenOverflowSet() {
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2C));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -622,7 +622,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnGECalledCorrectWhenNegativeSet() {
-        registersSpy.setCCNegative();
+        registerSetSpy.setCCNegative();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2C));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -644,8 +644,8 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnGENotCalledWhenNegativeAndOverflowSet() {
-        registersSpy.setCCNegative();
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCNegative();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2C));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -656,8 +656,8 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnGTCalledCorrectly() {
-        registersSpy.setCCZero();
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCZero();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2E));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -668,7 +668,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnGTNotCalledIfNotZeroSet() {
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2E));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -679,9 +679,9 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnGTNotCalledIfAllSet() {
-        registersSpy.setCCZero();
-        registersSpy.setCCOverflow();
-        registersSpy.setCCNegative();
+        registerSetSpy.setCCZero();
+        registerSetSpy.setCCOverflow();
+        registerSetSpy.setCCNegative();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2E));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -692,7 +692,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLECalledCorrectly() {
-        registersSpy.setCCZero();
+        registerSetSpy.setCCZero();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -703,7 +703,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLECalledIfNotZeroAndOverflow() {
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -714,7 +714,7 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLECalledIfNotZeroAndNegative() {
-        registersSpy.setCCNegative();
+        registerSetSpy.setCCNegative();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
@@ -725,13 +725,44 @@ public class CPUIntegrationTest
 
     @Test
     public void testLongBranchOnLENotCalledIfOverflowAndNegative() {
-        registersSpy.setCCNegative();
-        registersSpy.setCCOverflow();
+        registerSetSpy.setCCNegative();
+        registerSetSpy.setCCOverflow();
         memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
         memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x2F));
         memorySpy.writeByte(new UnsignedWord(0x2), new UnsignedByte(0xBE));
         memorySpy.writeByte(new UnsignedWord(0x3), new UnsignedByte(0xEF));
         cpuSpy.executeInstruction();
         verify(cpuSpy, never()).branchLong(new UnsignedWord(0xBEEF));
+    }
+
+    @Test
+    public void testSWI3PushesAllValues() {
+        memorySpy.writeByte(new UnsignedWord(0x0), new UnsignedByte(0x10));
+        memorySpy.writeByte(new UnsignedWord(0x1), new UnsignedByte(0x3F));
+        memorySpy.writeByte(CPU.SWI3, new UnsignedByte(0x56));
+        memorySpy.writeByte(CPU.SWI3.next(), new UnsignedByte(0x78));
+        registerSetSpy.setCCNegative();
+        registerSetSpy.setCCOverflow();
+        registerSetSpy.setS(new UnsignedWord(0xA000));
+        registerSetSpy.setU(new UnsignedWord(0xDEAD));
+        registerSetSpy.setY(new UnsignedWord(0xBEEF));
+        registerSetSpy.setX(new UnsignedWord(0xCAFE));
+        registerSetSpy.setDP(new UnsignedByte(0xAB));
+        registerSetSpy.setB(new UnsignedByte(0xCD));
+        registerSetSpy.setA(new UnsignedByte(0xEF));
+        cpuSpy.executeInstruction();
+        verify(cpuSpy).softwareInterrupt(CPU.SWI3);
+        assertEquals(new UnsignedByte(0x02), memorySpy.readByte(new UnsignedWord(0x9FFF)));
+        assertEquals(new UnsignedByte(0x00), memorySpy.readByte(new UnsignedWord(0x9FFE)));
+        assertEquals(new UnsignedByte(0xAD), memorySpy.readByte(new UnsignedWord(0x9FFD)));
+        assertEquals(new UnsignedByte(0xDE), memorySpy.readByte(new UnsignedWord(0x9FFC)));
+        assertEquals(new UnsignedByte(0xEF), memorySpy.readByte(new UnsignedWord(0x9FFB)));
+        assertEquals(new UnsignedByte(0xBE), memorySpy.readByte(new UnsignedWord(0x9FFA)));
+        assertEquals(new UnsignedByte(0xFE), memorySpy.readByte(new UnsignedWord(0x9FF9)));
+        assertEquals(new UnsignedByte(0xCA), memorySpy.readByte(new UnsignedWord(0x9FF8)));
+        assertEquals(new UnsignedByte(0xAB), memorySpy.readByte(new UnsignedWord(0x9FF7)));
+        assertEquals(new UnsignedByte(0xCD), memorySpy.readByte(new UnsignedWord(0x9FF6)));
+        assertEquals(new UnsignedByte(0xEF), memorySpy.readByte(new UnsignedWord(0x9FF5)));
+        assertEquals(new UnsignedByte(0x8A), memorySpy.readByte(new UnsignedWord(0x9FF4)));
     }
 }

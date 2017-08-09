@@ -10,18 +10,23 @@ import java.util.function.Function;
 
 public class CPU
 {
-    Registers regs;
+    RegisterSet regs;
     Memory memory;
     String opShortDesc;
     String opLongDescription;
+    public final static UnsignedWord SWI3 = new UnsignedWord(0xFFF2);
 
-    public CPU(Registers registers, Memory memory) {
-        this.regs = registers;
+    public CPU(RegisterSet registerSet, Memory memory) {
+        this.regs = registerSet;
         this.memory = memory;
     }
 
     public void setShortDesc(String string, MemoryResult value) {
-        opShortDesc = String.format(string, value.getResult().getInt());
+        if (value != null) {
+            opShortDesc = String.format(string, value.getResult().getInt());
+        } else {
+            opShortDesc = string;
+        }
     }
 
     /**
@@ -316,6 +321,15 @@ public class CPU
                         }
                         setShortDesc("LBLE, REL [%04X]", memoryResult);
                         break;
+
+                    /* SWI3 - Software Interrupt 3 */
+                    case 0x3F:
+                        softwareInterrupt(SWI3);
+                        operationTicks = 19;
+                        setShortDesc("SWI3", null);
+                        break;
+
+
                 }
                 break;
             }
@@ -540,10 +554,10 @@ public class CPU
      */
     public UnsignedByte compliment(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(~(value.getShort()));
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
-        regs.cc.or(Registers.CC_C);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_V));
+        regs.cc.or(RegisterSet.CC_C);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
         return result;
     }
 
@@ -556,10 +570,10 @@ public class CPU
      */
     public UnsignedByte negate(UnsignedByte value) {
         UnsignedByte result = value.twosCompliment();
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V | Registers.CC_C));
-        regs.cc.or(result.isMasked(0x80) ? Registers.CC_V : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z | Registers.CC_N : 0);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_V | RegisterSet.CC_C));
+        regs.cc.or(result.isMasked(0x80) ? RegisterSet.CC_V : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z | RegisterSet.CC_N : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
         return result;
     }
 
@@ -574,9 +588,9 @@ public class CPU
      */
     public UnsignedByte logicalShiftRight(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
-        regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_C));
+        regs.cc.or(value.isMasked(0x1) ? RegisterSet.CC_C : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
         return result;
     }
 
@@ -590,10 +604,10 @@ public class CPU
     public UnsignedByte rotateRight(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
         result.add(regs.ccCarrySet() ? 0x80 : 0x0);
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
-        regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_C));
+        regs.cc.or(value.isMasked(0x1) ? RegisterSet.CC_C : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
         return result;
     }
 
@@ -607,10 +621,10 @@ public class CPU
     public UnsignedByte arithmeticShiftRight(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() >> 1);
         result.add(value.isMasked(0x80) ? 0x80 : 0);
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C));
-        regs.cc.or(value.isMasked(0x1) ? Registers.CC_C : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_C));
+        regs.cc.or(value.isMasked(0x1) ? RegisterSet.CC_C : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
         return result;
     }
 
@@ -623,11 +637,11 @@ public class CPU
      */
     public UnsignedByte arithmeticShiftLeft(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() << 1);
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V | Registers.CC_C));
-        regs.cc.or(value.isMasked(0x80) ? Registers.CC_C : 0);
-        regs.cc.or(value.isMasked(0xC0) ? Registers.CC_V : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_V | RegisterSet.CC_C));
+        regs.cc.or(value.isMasked(0x80) ? RegisterSet.CC_C : 0);
+        regs.cc.or(value.isMasked(0xC0) ? RegisterSet.CC_V : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
         return result;
     }
 
@@ -641,11 +655,11 @@ public class CPU
     public UnsignedByte rotateLeft(UnsignedByte value) {
         UnsignedByte result = new UnsignedByte(value.getShort() << 1);
         result.add(regs.ccCarrySet() ? 0x1 : 0x0);
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_C | Registers.CC_V));
-        regs.cc.or(value.isMasked(0x80) ? Registers.CC_C : 0);
-        regs.cc.or(value.isMasked(0xC0) ? Registers.CC_V : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_C | RegisterSet.CC_V));
+        regs.cc.or(value.isMasked(0x80) ? RegisterSet.CC_C : 0);
+        regs.cc.or(value.isMasked(0xC0) ? RegisterSet.CC_V : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
         return result;
     }
 
@@ -657,10 +671,10 @@ public class CPU
      */
     public UnsignedByte decrement(UnsignedByte value) {
         UnsignedByte result = regs.binaryAdd(value, new UnsignedByte(0xFF), false, false, false);
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
-        regs.cc.or(value.isZero() ? Registers.CC_V : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_V));
+        regs.cc.or(value.isZero() ? RegisterSet.CC_V : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
         return result;
     }
 
@@ -672,10 +686,10 @@ public class CPU
      */
     public UnsignedByte increment(UnsignedByte value) {
         UnsignedByte result = regs.binaryAdd(value, new UnsignedByte(0x1), false, false, false);
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
-        regs.cc.or(value.isMasked(0x7F) ? Registers.CC_V : 0);
-        regs.cc.or(result.isZero() ? Registers.CC_Z : 0);
-        regs.cc.or(result.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_V));
+        regs.cc.or(value.isMasked(0x7F) ? RegisterSet.CC_V : 0);
+        regs.cc.or(result.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(result.isNegative() ? RegisterSet.CC_N : 0);
         return result;
     }
 
@@ -686,9 +700,9 @@ public class CPU
      * @return the original byte value
      */
     public UnsignedByte test(UnsignedByte value) {
-        regs.cc.and(~(Registers.CC_N | Registers.CC_Z | Registers.CC_V));
-        regs.cc.or(value.isZero() ? Registers.CC_Z : 0);
-        regs.cc.or(value.isNegative() ? Registers.CC_N : 0);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_Z | RegisterSet.CC_V));
+        regs.cc.or(value.isZero() ? RegisterSet.CC_Z : 0);
+        regs.cc.or(value.isNegative() ? RegisterSet.CC_N : 0);
         return value;
     }
 
@@ -708,19 +722,42 @@ public class CPU
      * @return the cleared byte
      */
     public UnsignedByte clear(UnsignedByte value) {
-        regs.cc.and(~(Registers.CC_N | Registers.CC_C | Registers.CC_V));
-        regs.cc.or(Registers.CC_Z);
+        regs.cc.and(~(RegisterSet.CC_N | RegisterSet.CC_C | RegisterSet.CC_V));
+        regs.cc.or(RegisterSet.CC_Z);
         return new UnsignedByte(0);
     }
 
     /**
      * Increments (or decrements) the program counter by the specified amount.
-     * Will interpret the UnsignedWord offset as a negative value if the high
+     * Will interpret the UnsignedWord offset as a negative value if the setHigh
      * bit is set.
      *
      * @param offset the amount to offset the program counter
      */
     public void branchLong(UnsignedWord offset) {
         regs.getPC().add(offset.isNegative() ? offset.getSignedInt() : offset.getInt());
+    }
+
+    /**
+     * Saves all registers to the stack, and jumps to the memory location
+     * read at the specified address.
+     *
+     * @param offset the offset to read for a jump address
+     */
+    public void softwareInterrupt(UnsignedWord offset) {
+        regs.setCCEverything();
+        memory.pushStack(regs, Register.S, regs.getPC().getLow());
+        memory.pushStack(regs, Register.S, regs.getPC().getHigh());
+        memory.pushStack(regs, Register.S, regs.getU().getLow());
+        memory.pushStack(regs, Register.S, regs.getU().getHigh());
+        memory.pushStack(regs, Register.S, regs.getY().getLow());
+        memory.pushStack(regs, Register.S, regs.getY().getHigh());
+        memory.pushStack(regs, Register.S, regs.getX().getLow());
+        memory.pushStack(regs, Register.S, regs.getX().getHigh());
+        memory.pushStack(regs, Register.S, regs.getDP());
+        memory.pushStack(regs, Register.S, regs.getB());
+        memory.pushStack(regs, Register.S, regs.getA());
+        memory.pushStack(regs, Register.S, regs.getCC());
+        regs.setPC(memory.readWord(offset));
     }
 }

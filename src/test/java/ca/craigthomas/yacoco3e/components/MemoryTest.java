@@ -6,10 +6,7 @@ package ca.craigthomas.yacoco3e.components;
 
 import static org.junit.Assert.*;
 
-import ca.craigthomas.yacoco3e.datatypes.MemoryResult;
-import ca.craigthomas.yacoco3e.datatypes.Registers;
-import ca.craigthomas.yacoco3e.datatypes.UnsignedByte;
-import ca.craigthomas.yacoco3e.datatypes.UnsignedWord;
+import ca.craigthomas.yacoco3e.datatypes.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +49,7 @@ public class MemoryTest
     public void testGetImmediateReadsAddressFromPC() {
         memory.memory[0xBEEE] = 0xAB;
         memory.memory[0xBEEF] = 0xCD;
-        Registers regs = new Registers();
+        RegisterSet regs = new RegisterSet();
         regs.setPC(new UnsignedWord(0xBEEE));
         MemoryResult result = memory.getImmediate(regs);
         assertEquals(2, result.getBytesConsumed());
@@ -62,11 +59,27 @@ public class MemoryTest
     @Test
     public void testGetDirectReadsAddressFromDPAndPC() {
         memory.memory[0xBEEE] = 0xCD;
-        Registers regs = new Registers();
+        RegisterSet regs = new RegisterSet();
         regs.setPC(new UnsignedWord(0xBEEE));
         regs.setDP(new UnsignedByte(0xAB));
         MemoryResult result = memory.getDirect(regs);
         assertEquals(1, result.getBytesConsumed());
         assertEquals(new UnsignedWord(0xABCD), result.getResult());
+    }
+
+    @Test
+    public void testPushStackWritesToMemoryLocation() {
+        RegisterSet regs = new RegisterSet();
+        regs.setS(new UnsignedWord(0xA000));
+        memory.pushStack(regs, Register.S, new UnsignedByte(0x98));
+        assertEquals(memory.memory[0x9FFF], new UnsignedByte(0x98).getShort());
+    }
+
+    @Test
+    public void testPushStackWritesToMemoryLocationUsingUStack() {
+        RegisterSet regs = new RegisterSet();
+        regs.setU(new UnsignedWord(0xA000));
+        memory.pushStack(regs, Register.U, new UnsignedByte(0x98));
+        assertEquals(memory.memory[0x9FFF], new UnsignedByte(0x98).getShort());
     }
 }

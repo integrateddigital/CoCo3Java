@@ -37,14 +37,14 @@ public class UnsignedWordTest
     @Test
     public void testHighSetsHighByteOnly() {
         UnsignedWord result = new UnsignedWord();
-        result.high(new UnsignedByte(0xFF));
+        result.setHigh(new UnsignedByte(0xFF));
         assertEquals(0xFF00, result.getInt());
     }
 
     @Test
     public void testLowSetsLowByteOnly() {
         UnsignedWord result = new UnsignedWord();
-        result.low(new UnsignedByte(0xFF));
+        result.setLow(new UnsignedByte(0xFF));
         assertEquals(0x00FF, result.getInt());
     }
 
@@ -90,5 +90,11 @@ public class UnsignedWordTest
     public void testHashCodeIsIntValue() {
         UnsignedWord result = new UnsignedWord(0xBEEF);
         assertEquals(0xBEEF, result.hashCode());
+    }
+
+    @Test
+    public void testGetLowIsCorrect() {
+        UnsignedWord result = new UnsignedWord(0xABCD);
+        assertEquals(new UnsignedByte(0xCD), result.getLow());
     }
 }

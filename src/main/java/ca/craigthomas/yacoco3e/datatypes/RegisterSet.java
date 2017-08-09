@@ -5,27 +5,12 @@
 package ca.craigthomas.yacoco3e.datatypes;
 
 /**
- * The Registers class contains the full set of CPU registers as used by the
+ * The RegisterSet class contains the full set of CPU registers as used by the
  * CoCo 3. It also contains helper functions to modify the registers, as well
  * as common register flags.
  */
-public class Registers
+public class RegisterSet
 {
-    /* Register X Flag */
-    public static final int REG_X = 0;
-
-    /* Register Y Flag */
-    public static final int REG_Y = 1;
-
-    /* Register U Flag */
-    public static final int REG_U = 2;
-
-    /* Register S Flag */
-    public static final int REG_S = 3;
-
-    /* Register Unknown Flag */
-    public static final int REG_UNKNOWN = 99;
-
     /* Condition Code - Carry */
     public static final short CC_C = 0x01;
 
@@ -60,7 +45,7 @@ public class Registers
     UnsignedWord s;
     UnsignedWord u;
 
-    public Registers() {
+    public RegisterSet() {
         cc = new UnsignedByte(0);
         dp = new UnsignedByte(0);
         pc = new UnsignedWord(0);
@@ -98,6 +83,34 @@ public class Registers
         return s;
     }
 
+    public void setA(UnsignedByte a) {
+        this.a = a;
+    }
+
+    public void setB(UnsignedByte b) {
+        this.b = b;
+    }
+
+    public void setCC(UnsignedByte cc) {
+        this.cc = cc;
+    }
+
+    public void setX(UnsignedWord x) {
+        this.x = x;
+    }
+
+    public void setY(UnsignedWord y) {
+        this.y = y;
+    }
+
+    public void setU(UnsignedWord u) {
+        this.u = u;
+    }
+
+    public void setS(UnsignedWord s) {
+        this.s = s;
+    }
+
     public UnsignedByte getA() {
         return a;
     }
@@ -108,6 +121,10 @@ public class Registers
 
     public UnsignedWord getD() {
         return new UnsignedWord(a, b);
+    }
+
+    public UnsignedByte getCC() {
+        return cc;
     }
 
     /**
@@ -257,6 +274,10 @@ public class Registers
 
     public void setCCFastInterrupt() {
         cc.or(CC_F);
+    }
+
+    public void setCCEverything() {
+        cc.or(CC_E);
     }
 
     public void incrementPC() {
